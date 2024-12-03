@@ -29,3 +29,6 @@ __pycache__/
 *.bak
 *.old
 *.orig
+
+# Config folder specific to utilities
+rosmaster/src/utilities/config/
