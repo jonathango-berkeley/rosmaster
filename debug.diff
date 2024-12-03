@@ -1,0 +1,178 @@
+diff --git a/src/sensor_interface/sensor_interface/lidar.py b/src/sensor_interface/sensor_interface/lidar.py
+index cdd599c..5ed94a1 100644
+--- a/src/sensor_interface/sensor_interface/lidar.py
++++ b/src/sensor_interface/sensor_interface/lidar.py
+@@ -26,12 +26,17 @@ class LIDAR(Node):
+             self.listener_callback,
+             10
+         )
++        self.get_logger().info("LIDAR node initialized and subscribed to /scan.")
+ 
+     def set_data_callback(self, callback: Callable):
+         """Set a callback to be triggered when new LiDAR data is received."""
+         self.data_callback = callback
++        self.get_logger().info("Data callback set.")
+ 
+     def listener_callback(self, msg: LaserScan):
++        """Handle incoming LiDAR data from the /scan topic."""
++        self.get_logger().info("Received LaserScan message.")
++
+         # Update LiDAR data
+         self.ranges = msg.ranges
+         self.angle_min = msg.angle_min
+@@ -40,6 +45,37 @@ class LIDAR(Node):
+         self.range_min = msg.range_min
+         self.range_max = msg.range_max
+ 
++        # Log key LiDAR parameters for debugging
++        self.get_logger().debug(
++            f"Updated LiDAR data: angle_min={self.angle_min}, "
++            f"angle_max={self.angle_max}, angle_increment={self.angle_increment}, "
++            f"range_min={self.range_min}, range_max={self.range_max}, "
++            f"number of ranges={len(self.ranges) if self.ranges else 0}."
++        )
++
+         # Trigger the callback if set
+         if self.data_callback:
++            self.get_logger().info("LIDAR: Triggering the data callback.")
+             self.data_callback()
++        else:
++            self.get_logger().info("LIDAR: No data callback is set.")
++
++
++
++def main():
++    rclpy.init()
++
++    # Create and spin the LIDAR node
++    lidar = LIDAR()
++
++    try:
++        rclpy.spin(lidar)
++    except KeyboardInterrupt:
++        lidar.get_logger().info("LIDAR node shutting down.")
++    finally:
++        lidar.destroy_node()
++        rclpy.shutdown()
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/src/sensor_interface/setup.py b/src/sensor_interface/setup.py
+index aacfa9b..ba13c1d 100644
+--- a/src/sensor_interface/setup.py
++++ b/src/sensor_interface/setup.py
+@@ -20,6 +20,7 @@ setup(
+     tests_require=['pytest'],
+     entry_points={
+         'console_scripts': [
++            'lidar = sensor_interface.lidar:main',
+         ],
+     },
+ )
+diff --git a/src/trajectory_planner/setup.py b/src/trajectory_planner/setup.py
+index 6c09f6d..f77ff09 100644
+--- a/src/trajectory_planner/setup.py
++++ b/src/trajectory_planner/setup.py
+@@ -20,6 +20,7 @@ setup(
+     tests_require=['pytest'],
+     entry_points={
+         'console_scripts': [
++            'slam = trajectory_planner.slam:main',
+         ],
+     },
+ )
+diff --git a/src/trajectory_planner/trajectory_planner/slam.py b/src/trajectory_planner/trajectory_planner/slam.py
+index 73f359e..a0737c4 100644
+--- a/src/trajectory_planner/trajectory_planner/slam.py
++++ b/src/trajectory_planner/trajectory_planner/slam.py
+@@ -5,10 +5,11 @@ from typing import Optional
+ from nav_msgs.msg import OccupancyGrid
+ from geometry_msgs.msg import Pose
+ from rclpy.node import Node
++import rclpy
+ 
+-from sensor_interface.sensor_interface.lidar import LIDAR
+-from sensor_interface.sensor_interface.depth_camera import DepthCamera
+-from sensor_interface.sensor_interface.mipi_camera import MIPICamera
++from sensor_interface.lidar import LIDAR
++# from sensor_interface.sensor_interface.depth_camera import DepthCamera
++# from sensor_interface.sensor_interface.mipi_camera import MIPICamera
+ 
+ 
+ class SLAM(Node):
+@@ -23,13 +24,18 @@ class SLAM(Node):
+ 
+         # OccupancyGrid publisher
+         self.map_publisher = self.create_publisher(OccupancyGrid, '/map', 10)
++        self.get_logger().info("SLAM node initialized and '/map' publisher created.")
+ 
+     def update_map(self) -> None:
+         """Generate and publish an OccupancyGrid map based on the latest LiDAR data."""
++        self.get_logger().info("SLAM: update_map triggered.")
++        
+         if self.lidar.ranges is None:
+             self.get_logger().warn("No LiDAR data available to generate the map.")
+             return
+ 
++        self.get_logger().info("Updating map based on new LiDAR data.")
++
+         # Define map parameters
+         map_size: tuple[int, int] = (100, 100)  # Map is map_size x map_size
+         resolution: float = 0.1  # 0.1 meters per grid cell
+@@ -37,8 +43,16 @@ class SLAM(Node):
+ 
+         # Create an empty grid (unknown = -1)
+         occupancy_grid: np.ndarray = np.full(map_size, -1, dtype=int)
++
++        # Debug: Log map initialization
++        self.get_logger().debug(f"Initial occupancy grid created with size: {map_size}")
++
++        # Generate the map
+         occupancy_grid = self._generate_map(occupancy_grid)
+ 
++        # Debug: Log map update
++        self.get_logger().debug(f"Updated occupancy grid generated.")
++
+         # Create the OccupancyGrid message
+         occupancy_msg: OccupancyGrid = OccupancyGrid()
+         occupancy_msg.header.frame_id = "map"
+@@ -55,9 +69,36 @@ class SLAM(Node):
+ 
+         # Publish the map
+         self.map_publisher.publish(self.current_map)
+-        self.get_logger().info("Published updated map.")
++        self.get_logger().info("Published updated map to '/map'.")
+ 
+     def _generate_map(self, occupancy_grid: np.ndarray) -> np.ndarray:
+         """Use the SLAM algorithm to create an updated Occupancy Grid."""
+-        # TODO: implement SLAM algorithm
++        # Debug: Placeholder SLAM generation
++        self.get_logger().debug("Generating map with placeholder SLAM algorithm.")
++
++        # TODO: Implement SLAM algorithm here
++        occupancy_grid[50, 50] = 100  # Example: mark a single cell as occupied for testing
++        self.get_logger().debug("Marked cell (50, 50) as occupied for debugging purposes.")
+         return occupancy_grid
++
++
++def main():
++    rclpy.init()
++
++    # Initialize the LIDAR and SLAM system
++    lidar = LIDAR()
++    slam_node = SLAM(lidar)
++
++    try:
++        slam_node.get_logger().info("SLAM node is running. Waiting for LiDAR updates...")
++        rclpy.spin(slam_node)
++    except KeyboardInterrupt:
++        slam_node.get_logger().info("Shutting down SLAM node.")
++    finally:
++        lidar.destroy_node()
++        slam_node.destroy_node()
++        rclpy.shutdown()
++
++
++if __name__ == "__main__":
++    main()
