@@ -54,17 +54,19 @@ This project enables a robot to dynamically navigate toward a given goal while a
 
 ---
 
-## **Node Architecture**
+## **Topics Overview**
 
-### **Node List**
-
-| **Node Name**            | **Type**  | **Subscribers**                                  | **Publishers**                           |
-|---------------------------|-----------|--------------------------------------------------|------------------------------------------|
-| **`sensor_interface_node`** | Python   | None (acts as a sensor data publisher)          | `/scan`, `/depth_image`, `/odom`, `/camera_image` |
-| **`slam_node`**            | Python   | `/scan`, `/odom`                                | `/map`                                   |
-| **`path_planner_node`**    | Python   | `/map`, `/goal_pose`                            | `/planned_trajectory`                   |
-| **`control_node`**         | Python   | `/planned_trajectory`                           | `/cmd_vel`                               |
-| **`simulation_node`**      | Python   | `/map`, `/cmd_vel`                              | RViz visualization markers              |
+| **Topic Name**           | **Message Type**             | **Description**                                       |
+|---------------------------|------------------------------|-------------------------------------------------------|
+| `/scan`                  | `sensor_msgs/LaserScan`      | LIDAR data for obstacle detection and SLAM.           |
+| `/depth_image`           | `sensor_msgs/Image`          | Depth camera data for 3D environmental mapping.       |
+| `/camera_image`          | `sensor_msgs/Image`          | Visual data from the MIPI camera for debugging.       |
+| `/odom`                  | `nav_msgs/Odometry`          | Real-time position and velocity data of the robot.    |
+| `/map`                   | `nav_msgs/OccupancyGrid`     | Real-time occupancy grid map of the environment.      |
+| `/goal_pose`             | `geometry_msgs/PoseStamped`  | Target position for the robot to navigate to.         |
+| `/trajectory`            | `nav_msgs/Path`              | Sequence of waypoints representing the computed path. |
+| `/cmd_vel`               | `geometry_msgs/Twist`        | Velocity commands for robot motion control.           |
+| `/tf`                    | `tf2_msgs/TFMessage`         | Transformation tree for robot localization and mapping. |
 
 ---
 
