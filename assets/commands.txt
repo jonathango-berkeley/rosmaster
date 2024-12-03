@@ -26,3 +26,6 @@ ll /dev/oradar    #NOT olidar !!! should print result if lidar is connected
 ros2 launch oradar_lidar ms200_scan.launch.py    #AGAIN NOT olidar !!! starts publishing lidar data in /scan (echo should work)
 
 ros2 launch rosbridge_server rosbridge_websocket_launch.xml    #starts a rosbridge server that you can log on e.g. with foxglove studio -> more: https://github.com/nodehubs/ldlidar_ros2
+
+# good introduction to git branches and merging
+https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
