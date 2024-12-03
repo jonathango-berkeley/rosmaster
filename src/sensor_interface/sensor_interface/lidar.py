@@ -26,12 +26,17 @@ class LIDAR(Node):
             self.listener_callback,
             10
         )
+        self.get_logger().info("LIDAR node initialized and subscribed to /scan.")
 
     def set_data_callback(self, callback: Callable):
         """Set a callback to be triggered when new LiDAR data is received."""
         self.data_callback = callback
+        self.get_logger().info("Data callback set.")
 
     def listener_callback(self, msg: LaserScan):
+        """Handle incoming LiDAR data from the /scan topic."""
+        self.get_logger().info("Received LaserScan message.")
+
         # Update LiDAR data
         self.ranges = msg.ranges
         self.angle_min = msg.angle_min
@@ -40,6 +45,37 @@ class LIDAR(Node):
         self.range_min = msg.range_min
         self.range_max = msg.range_max
 
+        # Log key LiDAR parameters for debugging
+        self.get_logger().debug(
+            f"Updated LiDAR data: angle_min={self.angle_min}, "
+            f"angle_max={self.angle_max}, angle_increment={self.angle_increment}, "
+            f"range_min={self.range_min}, range_max={self.range_max}, "
+            f"number of ranges={len(self.ranges) if self.ranges else 0}."
+        )
+
         # Trigger the callback if set
         if self.data_callback:
+            self.get_logger().info("LIDAR: Triggering the data callback.")
             self.data_callback()
+        else:
+            self.get_logger().info("LIDAR: No data callback is set.")
+
+
+
+def main():
+    rclpy.init()
+
+    # Create and spin the LIDAR node
+    lidar = LIDAR()
+
+    try:
+        rclpy.spin(lidar)
+    except KeyboardInterrupt:
+        lidar.get_logger().info("LIDAR node shutting down.")
+    finally:
+        lidar.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
