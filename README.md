@@ -54,6 +54,20 @@ This project enables a robot to dynamically navigate toward a given goal while a
 
 ---
 
+## **Node Architecture**
+
+### **Node List**
+
+| **Node Name**            | **Type**  | **Subscribers**                                  | **Publishers**                           |
+|---------------------------|-----------|--------------------------------------------------|------------------------------------------|
+| **`sensor_interface_node`** | Python   | None (acts as a sensor data publisher)          | `/scan`, `/depth_image`, `/odom`, `/camera_image` |
+| **`slam_node`**            | Python   | `/scan`, `/odom`                                | `/map`                                   |
+| **`path_planner_node`**    | Python   | `/map`, `/goal_pose`                            | `/planned_trajectory`                   |
+| **`control_node`**         | Python   | `/planned_trajectory`                           | `/cmd_vel`                               |
+| **`simulation_node`**      | Python   | `/map`, `/cmd_vel`                              | RViz visualization markers              |
+
+---
+
 ## **Project Directory Structure**
 ```plaintext
 rosmaster/
@@ -89,6 +103,8 @@ rosmaster/
 ├── build/
 ├── install/
 └── log/
+
+---
 
 ## **Usage Instructions**
 
