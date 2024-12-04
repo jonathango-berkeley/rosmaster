@@ -1,0 +1,3 @@
+v1: basic A*
+v2: v1 with penalty (modify the cost function such that nodes near obstacles are “more expensive”) (planned)
+v3: v1 with buffer zone near obstacles (planned)
