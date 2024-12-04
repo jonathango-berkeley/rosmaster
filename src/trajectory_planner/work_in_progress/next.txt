@@ -1,0 +1,3 @@
+#avoid collision:
+#-> buffer zone near obstacles where nodes are "pseudo occupied"
+#-> modify the cost function such that nodes near obstacles are “more expensive” (may not be able to avoid collisions or need an extra function for this) 
