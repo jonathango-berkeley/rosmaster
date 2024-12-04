@@ -26,7 +26,7 @@ This project enables a robot to dynamically navigate toward a given goal while a
   - **Robot Control**: Converts the trajectory into velocity commands for the robot.
 - **Topics**:
   - `/map`: Real-time map of the environment.
-  - `/planned_trajectory`: Planned path toward the goal.
+  - `/trajectory`: Planned path toward the goal.
   - `/cmd_vel`: Velocity commands for robot movement.
 
 ---
