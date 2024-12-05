@@ -1,68 +1,72 @@
 # ROS 2 Project: Modular Robot Architecture
 
 ## **Overview**
-This project's goal is to control a robot to a specific path towards a given goal while updating its trajectory based on obstacles found along the way.
-
-1. **`sensor_interface`**: Handles data acquisition from the robot's sensors (MIPI Camera, Depth Camera, and LIDAR).
-2. **`trajectory_planner`**: Processes sensor data to perform SLAM, plan trajectories, and control the robot's movements.
-3. **`utilities`**: Integrates all components, facilitates simulations using RViz, and provides debugging tools.
+This project enables a robot to dynamically navigate toward a given goal while avoiding obstacles. The architecture integrates sensor data, odometry, SLAM, and trajectory planning to compute real-time paths and commands for the robot.
 
 ---
 
-## **Packages and Features**
+## **System Components**
 
-### **1. sensor_interface**
-- **Purpose**: Collects and publishes data from sensors.
-- **Key Components**:
-  - **MIPICamera**: Captures and processes image data.
-  - **DepthCamera**: Captures depth frames and processes 3D data.
-  - **LIDAR**: Collects and processes scan data for obstacle detection.
+### **1. Sensor Initialization (Robot)**
+- **Purpose**: Initializes all sensors and odometry on the robot.
+- **Launch File**:
+  - `sensor_interface_launch.py`: This file initializes:
+    - **LIDAR**: Collects data for obstacle detection.
+    - **Depth Camera**: Captures 3D depth data for environmental mapping.
+    - **MIPI Camera**: Captures visual data for debugging or navigation.
+    - **Odometry**: Provides real-time position updates for the robot.
+
+---
+
+### **2. Trajectory Planner (Host or Robot)**
+- **Purpose**: Processes sensor and odometry data to compute the robot's trajectory.
+- **Key Features**:
+  - **SLAM**: Generates a real-time map of the environment.
+  - **Path Planning**: Calculates the optimal trajectory to the goal.
+  - **Robot Control**: Converts the trajectory into velocity commands for the robot.
 - **Topics**:
-  - `/mipi_camera_data`: Raw or processed camera data.
-  - `/depth_camera_data`: Depth camera data.
-  - `/lidar_data`: Processed LIDAR scan data.
-- **Launch File**: `sensor_launch.py` initializes all sensor nodes.
+  - `/map`: Real-time map of the environment.
+  - `/trajectory`: Planned path toward the goal.
+  - `/cmd_vel`: Velocity commands for robot movement.
 
 ---
 
-### **2. trajectory_planner**
-- **Purpose**: Plans robot trajectories based on sensor data.
-- **Key Components**:
-  - **SLAM**: Generates maps of the environment.
-  - **PathPlanner**: Computes the optimal path to the goal.
-  - **ControlModule**: Converts trajectories into velocity commands.
-- **Topics**:
-  - `/map`: Generated map of the environment.
-  - `/planned_trajectory`: Planned path for the robot.
-  - `/cmd_vel`: Robot velocity commands.
-- **Launch File**: `trajectory_launch.py` runs and debugs SLAM, planning, and control subsystems.
-
----
-
-### **3. utilities**
-- **Purpose**: Manages the entire system and supports simulation and logging.
-- **Key Components**:
-  - **RVizSimulation**: Simulates robot actions in RViz.
-  - **SystemLogger**: Logs data from all components for debugging.
-  - **ConfigGenerator**: Loads parameters and goals from `config.yaml`.
-- **Features**:
-  - **Simulation**: Visualize the robot and its actions in RViz.
-  - **Logging**: Collect runtime data for analysis.
-  - **Main Launch File**: `navigation_launch.py` initializes the full system.
-- **Config File**: `config/config.yaml` contains parameters such as sensor settings, start and end goals, and simulation options.
+### **3. Simulation and Debugging (Host)**
+- **Purpose**: Simulates the robot's actions and facilitates debugging.
+- **Key Features**:
+  - **RViz Integration**: Visualize sensor data, maps, and trajectories in RViz.
+  - **System Logging**: Logs sensor and trajectory data for offline analysis.
 
 ---
 
 ## **System Workflow**
 
-1. **Sensor Data Acquisition**:
-   - `sensor_interface` collects data from all sensors and publishes it to ROS topics.
+1. **Sensor Initialization (Robot)**:
+   - Run the `sensor_interface_launch.py` file on the robot to start all sensors and odometry.
 
-2. **Trajectory Planning**:
-   - `trajectory_planner` subscribes to sensor topics, performs SLAM, plans trajectories, and generates robot commands.
+2. **Trajectory Planning (Host or Robot)**:
+   - The planner subscribes to sensor and odometry topics.
+   - It performs SLAM, plans paths, and publishes velocity commands to `/cmd_vel`.
 
-3. **System Management**:
-   - `utilities` integrates components, runs RViz simulations, and logs data for debugging.
+3. **Simulation and Debugging (Host)**:
+   - RViz displays sensor data, maps, and trajectories.
+   - Logs runtime data for debugging and analysis.
+
+---
+
+## **Topics Overview**
+
+| **Topic Name**           | **Message Type**             | **Description**                                       |
+|---------------------------|------------------------------|-------------------------------------------------------|
+| `/scan`                  | `sensor_msgs/LaserScan`      | LIDAR data for obstacle detection and SLAM.           |
+| `/depth_image`           | `sensor_msgs/Image`          | Depth camera data for 3D environmental mapping.       |
+| `/camera_image`          | `sensor_msgs/Image`          | Visual data from the MIPI camera for debugging.       |
+| `/odom`                  | `nav_msgs/Odometry`          | Real-time position and velocity data of the robot.    |
+| `/map`                   | `nav_msgs/OccupancyGrid`     | Real-time occupancy grid map of the environment.      |
+| `/goal_pose`             | `geometry_msgs/PoseStamped`  | Target position for the robot to navigate to.         |
+| `/trajectory`            | `nav_msgs/Path`              | Sequence of waypoints representing the computed path. |
+| `/cmd_vel`               | `geometry_msgs/Twist`        | Velocity commands for robot motion control.           |
+| `/tf`                    | `tf2_msgs/TFMessage`         | Transformation tree for robot localization and mapping. |
 
 ---
 
@@ -72,20 +76,14 @@ rosmaster/
 ├── src/
 │   ├── sensor_interface/
 │   │   ├── launch/
-│   │   │   └── sensor_launch.py                # Launch file for all sensors
-│   │   ├── sensor_interface/
-│   │   │   ├── __init__.py
-│   │   │   ├── mipi_camera.py                  # MIPI Camera class
-│   │   │   ├── depth_camera.py                 # Depth Camera class
-│   │   │   └── lidar.py                        # LIDAR class
+│   │   │   └── sensor_interface_launch.py      # Launches sensors and odometry
 │   │   ├── setup.py
 │   │   └── package.xml
 │   │
 │   ├── trajectory_planner/
 │   │   ├── launch/
-│   │   │   └── trajectory_launch.py            # Launch file for SLAM, trajectory, and control
+│   │   │   └── trajectory_launch.py            # Runs SLAM, planning, and control
 │   │   ├── robot_trajectory_planner/
-│   │   │   ├── __init__.py
 │   │   │   ├── slam.py                         # SLAM implementation
 │   │   │   ├── trajectory.py                   # Trajectory planning class
 │   │   │   └── robot_controls.py               # Robot control class
@@ -94,15 +92,13 @@ rosmaster/
 │   │
 │   ├── utilities/
 │   │   ├── launch/
-│   │   │   ├── navigation_launch.py            # Main launch file for the system
-│   │   │   └── simulation_launch.py            # Launch file for RViz simulation
-│   │   ├── utilities/
-│   │   │   ├── __init__.py
-│   │   │   ├── system_logger.py                # Logs data from all components
-│   │   │   ├── simulation.py                   # RViz simulation handler
-│   │   │   └── config_generator.py             # Handles `config.yaml` loading
+│   │   │   └── simulation_launch.py            # RViz simulation for debugging
 │   │   ├── config/
-│   │   │   └── config.yaml                     # Configuration for parameters, goals, etc.
+│   │   │   └── config.yaml                     # Parameters for sensors and planning
+│   │   ├── utilities/
+│   │   │   ├── simulation.py                   # RViz simulation handler
+│   │   │   ├── system_logger.py                # Logs data for debugging
+│   │   │   └── config_generator.py             # Handles `config.yaml` creation
 │   │   ├── setup.py
 │   │   └── package.xml
 │   │
@@ -110,7 +106,6 @@ rosmaster/
 ├── install/
 └── log/
 ```
-
 ---
 
 ## **Usage Instructions**
