@@ -154,7 +154,7 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
         next_nodes.remove(curr)
         examined_nodes.append(curr)
 
-        if curr == end:    #ends loop if end is found
+        if curr.x == end.x and curr.y == end.y:    #ends loop if end is found
             path = find_path(grid, came_from, curr)
             return path
 
@@ -181,6 +181,24 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
             came_from[str(nei_node.x) + ' ' + str(nei_node.y)] = curr    #puts current node into came_from with key of neighbor node
             nei_node.start_dis = start_dis_nei    #sets start_dis of neighbor node
             nei_node.end_dis = nei_node.start_dis + dis_curr_end(nei_node, end)    #sets end_dis of neighbor node
+            
+            plt.figure(dpi=300)
+            
+            columns1 = occupancy_grid_msg.info.width
+            rows1 = occupancy_grid_msg.info.height
+            
+            oc1_x, oc1_y, path1_x, path1_y = [[] for _ in range(4)]
+            
+            for i in range(rows1):
+                for j in range(columns1):
+                    if grid[j][i].type == 100:
+                        oc1_x.append(grid[j][i].x)
+                        oc1_y.append(grid[j][i].y)
+            plt.plot(curr.x, curr.y, color='red', linewidth=0.5, marker='o', markersize=0.01)
+            plt.plot(oc1_x, oc1_y, 's', color='black', markersize=1.7)
+            plt.axis('equal')
+            plt.show()
+            
     print("No path found!")
 
 #########################################################
