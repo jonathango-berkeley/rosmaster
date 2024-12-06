@@ -21,6 +21,7 @@ __pycache__/
 .idea/
 .vscode/
 *.log
+*.diff
 
 # Colcon-related files
 .colcon/
@@ -29,3 +30,4 @@ __pycache__/
 *.bak
 *.old
 *.orig
+*.yaml
