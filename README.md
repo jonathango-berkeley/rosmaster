@@ -3,7 +3,7 @@
 ## **Overview**
 This project's goal is to control a robot to a specific path towards a given goal while updating its trajectory based on obstacles found along the way.
 
-1. **`sensor_interface`**: Handles data acquisition from the robot's sensors (MIPI Camera and LIDAR).
+1. **`sensor_interface`**: Handles data acquisition from the robot's sensors (MIPI Camera, Depth Camera, and LIDAR).
 2. **`trajectory_planner`**: Processes sensor data to perform SLAM, plan trajectories, and control the robot's movements.
 3. **`utilities`**: Integrates all components, facilitates simulations using RViz, and provides debugging tools.
 
@@ -15,11 +15,13 @@ This project's goal is to control a robot to a specific path towards a given goa
 - **Purpose**: Collects and publishes data from sensors.
 - **Key Components**:
   - **MIPICamera**: Captures and processes image data.
+  - **DepthCamera**: Captures depth frames and processes 3D data.
   - **LIDAR**: Collects and processes scan data for obstacle detection.
 - **Topics**:
-  - `/camera/image`: Raw or processed camera data.
-  - `/scan`: Processed LIDAR scan data.
-- **Launch File**: `robot_launch.py` initializes all sensor nodes.
+  - `/mipi_camera_data`: Raw or processed camera data.
+  - `/depth_camera_data`: Depth camera data.
+  - `/lidar_data`: Processed LIDAR scan data.
+- **Launch File**: `sensor_launch.py` initializes all sensor nodes.
 
 ---
 
@@ -31,7 +33,7 @@ This project's goal is to control a robot to a specific path towards a given goa
   - **ControlModule**: Converts trajectories into velocity commands.
 - **Topics**:
   - `/map`: Generated map of the environment.
-  - `/trajectory`: Planned path for the robot.
+  - `/planned_trajectory`: Planned path for the robot.
   - `/cmd_vel`: Robot velocity commands.
 - **Launch File**: `trajectory_launch.py` runs and debugs SLAM, planning, and control subsystems.
 
@@ -73,26 +75,30 @@ rosmaster/
 │   │   │   └── sensor_launch.py                # Launch file for all sensors
 │   │   ├── sensor_interface/
 │   │   │   ├── __init__.py
-│   │   │   ├── magnet.py                       # Magnet Class
-│   │   │   └── mipi_camera.py                  # MIPI Camera class
+│   │   │   ├── mipi_camera.py                  # MIPI Camera class
+│   │   │   ├── depth_camera.py                 # Depth Camera class
+│   │   │   └── lidar.py                        # LIDAR class
 │   │   ├── setup.py
 │   │   └── package.xml
 │   │
 │   ├── trajectory_planner/
 │   │   ├── launch/
-│   │   │   └── navigation_launch.py            # Launch file for SLAM, trajectory, and control
-│   │   ├── trajectory_planner/
+│   │   │   └── trajectory_launch.py            # Launch file for SLAM, trajectory, and control
+│   │   ├── robot_trajectory_planner/
 │   │   │   ├── __init__.py
-│   │   │   └── exploration.py                  # Trajectory Planning & Exploration Algorithm
+│   │   │   ├── slam.py                         # SLAM implementation
+│   │   │   ├── trajectory.py                   # Trajectory planning class
+│   │   │   └── robot_controls.py               # Robot control class
 │   │   ├── setup.py
 │   │   └── package.xml
 │   │
 │   ├── utilities/
 │   │   ├── launch/
-│   │   │   ├── robot_launch.py            # Main launch file for the system
-│   │   │   └── rviz_launch.py             # Launch file for RViz simulation
+│   │   │   ├── navigation_launch.py            # Main launch file for the system
+│   │   │   └── simulation_launch.py            # Launch file for RViz simulation
 │   │   ├── utilities/
 │   │   │   ├── __init__.py
+│   │   │   ├── system_logger.py                # Logs data from all components
 │   │   │   ├── simulation.py                   # RViz simulation handler
 │   │   │   └── config_generator.py             # Handles `config.yaml` loading
 │   │   ├── config/
