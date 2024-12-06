@@ -121,9 +121,11 @@ def process_occupancy_grid(occupancy_grid_msg: OccupancyGrid):
 
 #########################################################
 
-def a_star(occupancy_grid_msg: OccupancyGrid, start, end):
+def a_star(occupancy_grid_msg: OccupancyGrid, start_coor, end_coor):
 
     grid = process_occupancy_grid(occupancy_grid_msg: OccupancyGrid)
+    start = grid[start_coor[1]][start_coor[0]]
+    end = grid[end_coor[1]][end_coor[0]]
     
     next_nodes = []    #list where nodes are added which are to be examined next
     examined_nodes = []    #list where nodes are added that which were examined
