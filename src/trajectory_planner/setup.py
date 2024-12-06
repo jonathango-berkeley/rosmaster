@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'slam = trajectory_planner.slam:main',
+            'trajectory = trajectory_planner.trajectory:main',
         ],
     },
 )

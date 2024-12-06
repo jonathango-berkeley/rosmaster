@@ -3,6 +3,14 @@ from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid, Path
 from geometry_msgs.msg import PoseStamped
 
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import a_star_Gutsav_v2 as a_star
+import numpy as np
+
 
 class Trajectory(Node):
     def __init__(self):
@@ -90,6 +98,7 @@ class Trajectory(Node):
         path.header = map_msg.header
 
         # TODO: Replace with actual algorithm to generate the path
+        a_star.plot(map_msg, np.array([1,1]), np.array([98,98]))
 
         # Add the goal as the last waypoint for demonstration
         goal_waypoint = PoseStamped()
