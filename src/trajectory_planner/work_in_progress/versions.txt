@@ -1,4 +1,4 @@
 v1: basic A*
-v2: v1 using occupancy grid (nav_msgs/OccupancyGrid Message) as input (planned)
+v2: v1 using occupancy grid (nav_msgs/OccupancyGrid Message) as input (testing)
 v3: v2 with penalty (modify the cost function such that nodes near obstacles are “more expensive”) (planned)
 v4: v2 with buffer zone near obstacles (planned)
