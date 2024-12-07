@@ -19,12 +19,13 @@ def dis_curr_end(curr, end):    #minimal distance from current node to end node
     
     x_dis = abs(end.x - curr.x)
     y_dis = abs(end.y - curr.y)
-    
+    """
     diag = min(x_dis, y_dis)    #minimal diagonal steps needed to reach end
     strai = x_dis + y_dis - 2 * diag    #minimal straight steps needed to reach end
     
     dis = math.sqrt(2) * diag + strai
-    
+    """
+    dis = x_dis + y_dis
     return dis
 
 #########################################################
@@ -138,7 +139,23 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
     #print(grid)
     #print(grid[start_coor[1]][start_coor[0]].type)
     #print(grid[end_coor[1]][end_coor[0]].type)
-    
+    """
+    plt.figure(dpi=300)
+            
+    columns1 = occupancy_grid_msg.info.width
+    rows1 = occupancy_grid_msg.info.height
+            
+    oc1_x, oc1_y, path1_x, path1_y = [[] for _ in range(4)]
+            
+    for i in range(rows1):
+        for j in range(columns1):
+            if grid[j][i].type == 100:
+                oc1_x.append(grid[j][i].x)
+                oc1_y.append(grid[j][i].y)
+    plt.plot(oc1_x, oc1_y, 's', color='black', markersize=1.7)
+    plt.axis('equal')
+    plt.show()
+    """
     next_nodes = []    #list where nodes are added which are to be examined next
     examined_nodes = []    #list where nodes are added that which were examined
     came_from = {}    #dictionary where keys are node coordinates and values is previous node
@@ -147,7 +164,7 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
     start.end_dis = dis_curr_end(start, end)    #distance to end node
 
     next_nodes.append(start)    #first node to examine
-
+    #count = 0
     while len(next_nodes) > 0:    #loop until all nodes are examined
 
         curr = min_end_dis(next_nodes)    #set the current node to the node of next_nodes that is closest to end
@@ -157,7 +174,8 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
         if curr.x == end.x and curr.y == end.y:    #ends loop if end is found
             path = find_path(grid, came_from, curr)
             return path
-
+        #count = count + 1
+        #print(count, curr.end_dis)
         nei_nodes = get_nei(grid, curr)    #get neighbor nodes of current node
         #print(nei_nodes)
         for i in range(len(nei_nodes)):
@@ -181,7 +199,7 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
             came_from[str(nei_node.x) + ' ' + str(nei_node.y)] = curr    #puts current node into came_from with key of neighbor node
             nei_node.start_dis = start_dis_nei    #sets start_dis of neighbor node
             nei_node.end_dis = nei_node.start_dis + dis_curr_end(nei_node, end)    #sets end_dis of neighbor node
-            
+            """
             plt.figure(dpi=300)
             
             columns1 = occupancy_grid_msg.info.width
@@ -194,16 +212,34 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
                     if grid[j][i].type == 100:
                         oc1_x.append(grid[j][i].x)
                         oc1_y.append(grid[j][i].y)
-            plt.plot(curr.x, curr.y, color='red', linewidth=0.5, marker='o', markersize=0.01)
             plt.plot(oc1_x, oc1_y, 's', color='black', markersize=1.7)
+            plt.plot(curr.x, curr.y, color='red', marker='o', markersize=1)#, linewidth=0.5, markersize=0.01)
             plt.axis('equal')
             plt.show()
-            
+            """
     print("No path found!")
 
 #########################################################
 
 def plot(occupancy_grid_msg, start, end):
+
+    grid = process_occupancy_grid(occupancy_grid_msg)
+    
+    plt.figure(dpi=300)
+            
+    columns1 = occupancy_grid_msg.info.width
+    rows1 = occupancy_grid_msg.info.height
+            
+    oc1_x, oc1_y, path1_x, path1_y = [[] for _ in range(4)]
+            
+    for i in range(rows1):
+        for j in range(columns1):
+            if grid[j][i].type == 100:
+                oc1_x.append(grid[j][i].x)
+                oc1_y.append(grid[j][i].y)
+    plt.plot(oc1_x, oc1_y, 's', color='black', markersize=1.7)
+    plt.axis('equal')
+    plt.show()
 
     path1 = a_star(occupancy_grid_msg, start, end)
     
@@ -230,7 +266,7 @@ def plot(occupancy_grid_msg, start, end):
                 oc1_x.append(grid1[j][i].x)
                 oc1_y.append(grid1[j][i].y)
                 
-    #plt.plot(path1_x, path1_y, color='red', linewidth=0.5, marker='o', markersize=0.01)
+    plt.plot(path1_x, path1_y, color='red', linewidth=0.5, marker='o', markersize=0.01)
     plt.plot(oc1_x, oc1_y, 's', color='black', markersize=1.7)
     plt.axis('equal')
     
