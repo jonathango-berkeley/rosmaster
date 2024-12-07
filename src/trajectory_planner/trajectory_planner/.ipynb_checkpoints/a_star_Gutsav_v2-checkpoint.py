@@ -9,7 +9,7 @@ class Node:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.type = 'free'    #types: free, oc (= occupied), path, start, end
+        self.type = 100    #types: 0-100 [int] (from occupancy grid)
         self.start_dis = float('inf')    #distance to start node
         self.end_dis = float('inf')    #distance to end node
 
@@ -19,11 +19,16 @@ def dis_curr_end(curr, end):    #minimal distance from current node to end node
     
     x_dis = abs(end.x - curr.x)
     y_dis = abs(end.y - curr.y)
-    
+
+    #uncommented if diagonal movement is allowed 
+    """
     diag = min(x_dis, y_dis)    #minimal diagonal steps needed to reach end
     strai = x_dis + y_dis - 2 * diag    #minimal straight steps needed to reach end
     
     dis = math.sqrt(2) * diag + strai
+    """
+    #if diagonal movement is not allowed
+    dis = x_dis + y_dis
     
     return dis
 
@@ -48,7 +53,7 @@ def get_nei(grid, curr):
     
     rows = len(grid)    #determine number of rows
     columns = len(grid[0])    #determine number of columns
-    
+    #add diagonal movement if allowed
     direc = np.array([[1, 0], [0, 1], [0, -1], [-1, 0]])#, [-1, 1], [1, 1], [1, -1], [-1, -1]])    #possible directions (vertical, horizontal and #diagonal)
     
     nei_nodes = []    #list where neighbor nodes are added
@@ -81,7 +86,6 @@ def find_path(grid, came_from, curr):    #reconstructs the optimal path from cam
         path.insert(0, curr)
         curr = came_from[key]
         key = str(curr.x) + ' ' + str(curr.y)
-        #curr.type = 'path'
         
     return path
 
@@ -94,17 +98,8 @@ def process_occupancy_grid(occupancy_grid_msg):
     origin = occupancy_grid_msg.info.origin
 
     data = occupancy_grid_msg.data
-    #print(data)
+
     oc_grid = np.array(data).reshape((height, width))
-    """
-    for i in range(height):
-    	grid_row = []
-    	for j in range(width):
-    		grid_point = data[i*width+j]
-    		grid_row.append(grid_point)
-    	oc_grid.append(grid_row)
-    """
-    #print(oc_grid)
 
     grid = []    #empty gird (list)
     rows = height    #number of rows
@@ -117,16 +112,8 @@ def process_occupancy_grid(occupancy_grid_msg):
             node.type = oc_grid[j, i]
             row_nodes.append(node)    #add node to row
         grid.append(row_nodes)    #add row to grid
-    
-    #set start node 1
-    #start_coor = np.array([1, 1])    #[x, y]
-    #start = grid[start_coor1[1]][start_coor1[0]]
-    
-    #set end node 1
-    #end_coor = np.array([98, 98])    #[x, y]
-    #end = grid[end_coor1[1]][end_coor1[0]]
 
-    return grid#, start, end
+    return grid
 
 #########################################################
 
@@ -135,9 +122,6 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
     grid = process_occupancy_grid(occupancy_grid_msg)
     start = grid[start_coor[1]][start_coor[0]]
     end = grid[end_coor[1]][end_coor[0]]
-    #print(grid)
-    #print(grid[start_coor[1]][start_coor[0]].type)
-    #print(grid[end_coor[1]][end_coor[0]].type)
     
     next_nodes = []    #list where nodes are added which are to be examined next
     examined_nodes = []    #list where nodes are added that which were examined
@@ -154,12 +138,12 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
         next_nodes.remove(curr)
         examined_nodes.append(curr)
 
-        if curr == end:    #ends loop if end is found
+        if curr.x == end.x and curr.y == end.y:    #ends loop if end is found
             path = find_path(grid, came_from, curr)
             return path
 
         nei_nodes = get_nei(grid, curr)    #get neighbor nodes of current node
-        #print(nei_nodes)
+
         for i in range(len(nei_nodes)):
             
             nei_node = nei_nodes[i]    #neighbor node i
@@ -181,11 +165,33 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
             came_from[str(nei_node.x) + ' ' + str(nei_node.y)] = curr    #puts current node into came_from with key of neighbor node
             nei_node.start_dis = start_dis_nei    #sets start_dis of neighbor node
             nei_node.end_dis = nei_node.start_dis + dis_curr_end(nei_node, end)    #sets end_dis of neighbor node
+            
     print("No path found!")
 
 #########################################################
 
 def plot(occupancy_grid_msg, start, end):
+
+    grid = process_occupancy_grid(occupancy_grid_msg)
+    
+    plt.figure(dpi=300)
+    plt.title('Occupancy Grid')
+
+    columns1 = occupancy_grid_msg.info.width
+    rows1 = occupancy_grid_msg.info.height
+            
+    oc1_x, oc1_y, path1_x, path1_y = [[] for _ in range(4)]
+            
+    for i in range(rows1):
+        for j in range(columns1):
+            if grid[j][i].type == 100:
+                oc1_x.append(grid[j][i].x)
+                oc1_y.append(grid[j][i].y)
+                
+    plt.plot(oc1_x, oc1_y, 's', color='black', markersize=1.7)
+    plt.axis('equal')
+    
+    plt.show()
 
     path1 = a_star(occupancy_grid_msg, start, end)
     
@@ -194,25 +200,13 @@ def plot(occupancy_grid_msg, start, end):
     
     #plot grid
     plt.figure(dpi=300)
-    plt.title('Occupancy Grid')
-    
-    oc1_x, oc1_y, path1_x, path1_y = [[] for _ in range(4)]
-    
+    plt.title('Occupancy Grid with Path')
+        
     for i in range(len(path1)):
         path1_x.append(path1[i].x)
         path1_y.append(path1[i].y)
-    
-    grid1 = process_occupancy_grid(occupancy_grid_msg)
-    columns1 = occupancy_grid_msg.info.width
-    rows1 = occupancy_grid_msg.info.height
-    
-    for i in range(rows1):
-        for j in range(columns1):
-            if grid1[j][i].type == 100:
-                oc1_x.append(grid1[j][i].x)
-                oc1_y.append(grid1[j][i].y)
                 
-    #plt.plot(path1_x, path1_y, color='red', linewidth=0.5, marker='o', markersize=0.01)
+    plt.plot(path1_x, path1_y, color='red', linewidth=0.5, marker='o', markersize=0.01)
     plt.plot(oc1_x, oc1_y, 's', color='black', markersize=1.7)
     plt.axis('equal')
     
