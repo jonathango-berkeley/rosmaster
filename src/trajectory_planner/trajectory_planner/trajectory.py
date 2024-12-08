@@ -8,7 +8,7 @@ import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-import a_star_Gutsav_v2 as a_star
+import a_star_Gutsav_v4 as a_star
 import numpy as np
 
 
@@ -99,6 +99,7 @@ class Trajectory(Node):
 
         # TODO: Replace with actual algorithm to generate the path
         a_star.plot(map_msg, np.array([1,1]), np.array([98,98]))
+        way_points = a_star.a_star(map_msg, np.array([1,1]), np.array([98,98]))
 
         # Add the goal as the last waypoint for demonstration
         goal_waypoint = PoseStamped()

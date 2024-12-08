@@ -117,6 +117,25 @@ def process_occupancy_grid(occupancy_grid_msg):
 
 #########################################################
 
+def add_buffer(grid, buffer, start, end):
+    
+    rows = len(grid)
+    columns = len(grid[0])
+
+    for i in range(rows):
+        for j in range(columns):
+            if grid[j][i].type > 51:    #if it's an obstacle
+                for di in range(-buffer, buffer + 1):
+                    for dj in range(-buffer, buffer + 1):
+                        ni, nj = i + di, j + dj
+                        if 0 <= ni < rows and 0 <= nj < columns:    #check if the neighbor is in bounds and within the buffer distance
+                            if grid[ni][nj] != start and grid[nj][ni] != end and grid[nj][ni].type != 100:    #avoid overwriting start, end, or 100
+                                    grid[ni][nj].type = 51    #set psudo obstacle
+                                    
+    return
+
+#########################################################
+
 def a_star(occupancy_grid_msg, start_coor, end_coor):
 
     grid = process_occupancy_grid(occupancy_grid_msg)
@@ -132,6 +151,9 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
 
     next_nodes.append(start)    #first node to examine
 
+    buffer = 2    #size of buffer zone
+    add_buffer(grid, buffer, start, end)    #add buffer zone
+    
     while len(next_nodes) > 0:    #loop until all nodes are examined
 
         curr = min_end_dis(next_nodes)    #set the current node to the node of next_nodes that is closest to end
@@ -180,7 +202,7 @@ def plot(occupancy_grid_msg, start, end):
     columns1 = occupancy_grid_msg.info.width
     rows1 = occupancy_grid_msg.info.height
             
-    oc1_x, oc1_y, path1_x, path1_y = [[] for _ in range(4)]
+    oc1_x, oc1_y, path1_x, path1_y, poc1_x, poc1_y = [[] for _ in range(4)]
             
     for i in range(rows1):
         for j in range(columns1):
@@ -205,9 +227,17 @@ def plot(occupancy_grid_msg, start, end):
     for i in range(len(path1)):
         path1_x.append(path1[i].x)
         path1_y.append(path1[i].y)
+
+    for i in range(rows1):
+        for j in range(columns1):
+            if grid[j][i].type == 51:
+                poc1_x.append(grid[j][i].x)
+                poc1_y.append(grid[j][i].y)
                 
     plt.plot(path1_x, path1_y, color='red', linewidth=0.5, marker='o', markersize=0.01)
     plt.plot(oc1_x, oc1_y, 's', color='black', markersize=1.7)
+    plt.plot(poc1_x, poc1_y, 's', color='grey', markersize=1.7)
+
     plt.axis('equal')
     
     plt.show()
