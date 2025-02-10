@@ -16,20 +16,20 @@ def generate_launch_description():
     package_path = get_package_share_directory('yahboomcar_nav')
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
-    sensor_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('sensor_interface'), 'launch', 'sensor_launch.py'
-            )
-        )
-    )
-
     # Configuration for nav2_bringup
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
     map_yaml_path = LaunchConfiguration(
         'map', default=os.path.join(package_path, 'maps', 'maplorong.yaml'))
     nav2_param_path = LaunchConfiguration('params_file', default=os.path.join(
         package_path, 'params', 'teb_nav_params.yaml'))
+
+
+    # Mipi camera node
+    mipi_camera_node = Node(
+        package='sensor_interface',
+        executable='mipi_camera'
+    )
+
 
     # LiDAR publisher node  - using for cartographer
     cartographer_ms200_scan_node = IncludeLaunchDescription(
@@ -134,6 +134,17 @@ def generate_launch_description():
         ])
     )
 
+    
+    
+    # Path to sensor launch file
+    sensor_launch_path = os.path.join(
+        '/root/spongebob/src/sensor_interface/launch', 'sensor_launch.py')
+
+    # Include Sensor Launch
+    sensor_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(sensor_launch_path)
+    )
+
     # # Add Navigation Node (example placeholder for navigation stack)
     # navigation_node = Node(
     #     package='your_navigation_package',  # Replace with your navigation package
@@ -159,10 +170,19 @@ def generate_launch_description():
 
     # Combine everything into a single launch description
     return LaunchDescription([
-        sensor_launch,
+        # sensor_launch, #do not turn on. this will make it conflicted
 
+        # Declare launch arguments for Navigation 2
+        # DeclareLaunchArgument('use_sim_time', default_value=use_sim_time,
+        #                     description='Use simulation (Gazebo) clock if true'),
+        # DeclareLaunchArgument('map', default_value=map_yaml_path,
+        #                     description='Full path to map file to load'),
+        # DeclareLaunchArgument('params_file', default_value=nav2_param_path,
+        #                     description='Full path to param file to load'),
+
+
+        # gmapping_m200_scan_node,
         cartographer_ms200_scan_node,
-
         mcnamu_driver_node,
         pub_odom_tf_arg,
         base_node,

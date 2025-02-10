@@ -24,8 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'camera = sensor_interface.camera:main',
-            'detect_object = sensor_interface.detect_object:main',
+            'mipi_camera = sensor_interface.mipi_camera:main',
         ],
     },
 )
