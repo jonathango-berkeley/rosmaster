@@ -6,28 +6,33 @@ import Hobot.GPIO as GPIO
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
+from std_msgs.msg import Float32
 
 #global parameters
 PIN = 32
+PWM_freq = 1000
 
 class MagnetController(Node):
     def __init__(self):
-        super().__init__('magnet_controller')
+        super().__init__('magnet_pwm_controller')
         
-        self.last_state = None    #last state of magnet (on/off - True/False)
+        self.last_state = 0    #last duty cycle of magnet (%)
         
         #GPIO setup
         GPIO.setwarnings(False)    #GPIO warnings are not displayed
         GPIO.setmode(GPIO.BOARD)    #setting mode such that PIN number can be used
-        GPIO.setup(PIN, GPIO.OUT, initial=GPIO.LOW)    #setting PIN as output
+        
+        self.pwm = GPIO.PWM(PIN, PWM_freq)
+        self.pwm.start(0)
         
         #subscriber
-        self.subscription = self.create_subscription(Bool, '/magnet_control', self.magnet_callback, 10)    #msg type? topic name?
+        self.subscription = self.create_subscription(Float32, '/magnet_pwm_control', self.magnet_callback, 10)    #msg type? topic name?
         self.subscription
         
-        self.get_logger().info("Magnet controller node is initialized! Magnet off!")
+        self.get_logger().info("Magnet controller node (PWM) is initialized! Duty cycle 0%!")
 
     def clean_exit(self):
+        self.pwm.stop()
         GPIO.cleanup()
         self.get_logger().info("Magnet controller node is shutdown!")
         rclpy.shutdown()
@@ -37,15 +42,14 @@ class MagnetController(Node):
         if msg.data == self.last_state:
             return
         else:
-            self.last_state = msg.data
-            if msg.data == True:
-                GPIO.output(PIN, GPIO.HIGH)
-                self.get_logger().info("Magnet on!")
-            elif msg.data == False:
-                GPIO.output(PIN, GPIO.LOW)
-                self.get_logger().info("Magnet off!")
-            else:
-                self.get_logger().warn("Invalid msg!")
+            duty_cycle = max(0.0, min(100.0, msg.data))
+            if duty_cycle != msg.data:
+                self.get_logger().warn("Msg value out of range!")
+            
+            self.last_state = duty_cycle
+            self.pwm.ChangeDutyCycle(duty_cycle)
+            
+            self.get_logger().info(f"Duty cycle {duty_cycle}%!")
 
 def main(args=None):
     rclpy.init(args=args)
