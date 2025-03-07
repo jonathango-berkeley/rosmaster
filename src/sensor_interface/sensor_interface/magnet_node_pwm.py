@@ -10,7 +10,7 @@ from std_msgs.msg import Float32
 
 #global parameters
 PIN = 32
-PWM_freq = 1000
+PWM_freq = 48000
 
 class MagnetController(Node):
     def __init__(self):
