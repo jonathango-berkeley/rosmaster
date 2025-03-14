@@ -137,9 +137,6 @@ For the instruction, you will need 4 terminals (terminal 1, 2, & 3 on the robot 
    ```bash
    ros2 launch yahboomcar_nav navigation_dwb_launch.py
    ```
-  ```bash
-  ros2 launch sensor_interface robot_launch.py
-  ```
 ---
 
 ## **Authors**
