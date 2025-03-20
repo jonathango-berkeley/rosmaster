@@ -2,15 +2,13 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import PoseStamped, TransformStamped
+from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Bool
 from cv_bridge import CvBridge
 import cv2
 import cv2.aruco as aruco
 import numpy as np
 from scipy.spatial.transform import Rotation as R  # Using SciPy for quaternion conversion
-import tf2_ros
-
 
 def drawAxisCustom(img, camera_matrix, dist_coeffs, rvec, tvec, length=0.05):
     """
@@ -29,7 +27,6 @@ def drawAxisCustom(img, camera_matrix, dist_coeffs, rvec, tvec, length=0.05):
     img = cv2.line(img, origin, tuple(imgpts[3]), (255, 0, 0), 3)  # z-axis
     return img
 
-
 class ArucoDetector(Node):
     def __init__(self):
         super().__init__('aruco_detector')
@@ -46,14 +43,8 @@ class ArucoDetector(Node):
         # Publisher for PoseStamped messages
         self.pose_pub = self.create_publisher(PoseStamped, 'aruco/pose', 10)
         
-        # Publisher for TransformStamped messages
-        self.transform_pub = self.create_publisher(TransformStamped, 'aruco/transform', 10)
-        
         # Publisher for Boolean message indicating marker detection
         self.is_human_pub = self.create_publisher(Bool, '/is_human', 10)
-
-        # TF2 broadcaster
-        self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
 
         # ArUco Dictionary & Parameters
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
@@ -119,30 +110,7 @@ class ArucoDetector(Node):
                     # Publish pose
                     self.pose_pub.publish(pose_msg)
                     
-                    # Create and publish TransformStamped message
-                    transform_msg = TransformStamped()
-                    transform_msg.header.stamp = self.get_clock().now().to_msg()
-                    transform_msg.header.frame_id = "camera_link"
-                    transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
-                    transform_msg.transform.translation.x = tvec[0][0]
-                    transform_msg.transform.translation.y = tvec[0][1]
-                    transform_msg.transform.translation.z = tvec[0][2]
-                    transform_msg.transform.rotation.x = quat[0]
-                    transform_msg.transform.rotation.y = quat[1]
-                    transform_msg.transform.rotation.z = quat[2]
-                    transform_msg.transform.rotation.w = quat[3]
-                    
-                    self.get_logger().info(f"Publishing Transform to aruco/transform: {transform_msg.child_frame_id}")
-                    self.get_logger().info(f"Translation: x={transform_msg.transform.translation.x}, y={transform_msg.transform.translation.y}, z={transform_msg.transform.translation.z}")
-                    self.get_logger().info(f"Rotation: x={transform_msg.transform.rotation.x}, y={transform_msg.transform.rotation.y}, z={transform_msg.transform.rotation.z}, w={transform_msg.transform.rotation.w}")
-                    
-                    
-                    self.transform_pub.publish(transform_msg)
-                    self.tf_broadcaster.sendTransform(transform_msg)
-                    
-                    self.get_logger().info("Transform successfully published!")
-                    
-                    self.get_logger().info(f"Published Transform: {transform_msg.child_frame_id}")
+                    self.get_logger().info(f"Marker ID {ids[i][0]}: rvec = {rvec.flatten()}, tvec = {tvec.flatten()}")
 
             # Show the resulting image with markers and pose axes
             cv2.imshow("Aruco Detection with Pose", cv_image)

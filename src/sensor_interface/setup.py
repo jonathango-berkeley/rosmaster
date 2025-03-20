@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'mipi_camera_publisher = sensor_interface.mipi_camera:main',
             'aruco_detector_subscriber = sensor_interface.aruco_detector_subscriber:main',
+            'aruco_map_transform = sensor_interface.aruco_map_transform:main',
         ],
     },
 )
