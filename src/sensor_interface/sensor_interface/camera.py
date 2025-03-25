@@ -8,7 +8,7 @@ from SunriseRobotLib import Mipi_Camera
 
 class MipiCameraPublisher(Node):
     def __init__(self):
-        super().__init__('mipi_camera_publisher')
+        super().__init__('camera')
         self.publisher_ = self.create_publisher(Image, 'camera/image_raw', 10)
         
         # Initialize the MIPI Camera

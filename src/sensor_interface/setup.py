@@ -24,9 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mipi_camera_publisher = sensor_interface.mipi_camera:main',
-            'aruco_detector_subscriber = sensor_interface.aruco_detector_subscriber:main',
-            'aruco_map_transform = sensor_interface.aruco_map_transform:main',
+            'camera = sensor_interface.camera:main',
+            'detect_object = sensor_interface.detect_object:main',
         ],
     },
 )
