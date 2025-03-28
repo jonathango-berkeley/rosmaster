@@ -12,8 +12,6 @@ import cv2.aruco as aruco
 import numpy as np
 from scipy.spatial.transform import Rotation as R  # Using SciPy for quaternion conversion
 import tf2_ros
-import tf_transformations
-
 
 def drawAxisCustom(img, camera_matrix, dist_coeffs, rvec, tvec, length=0.05):
     axis = np.float32([[0, 0, 0],
