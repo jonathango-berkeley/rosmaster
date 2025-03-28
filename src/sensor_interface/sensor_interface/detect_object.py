@@ -105,7 +105,7 @@ class ArucoDetector(Node):
                         r = transform_map_to_camera.transform.rotation
                         
                         # Apply transformation to position
-                        tvec_transformed = np.array([tvec[0] + t.x, tvec[1] + t.y, tvec[2] + t.z])
+                        tvec_transformed = np.array([tvec[0][0] + t.x, tvec[0][1] + t.y, tvec[0][2] + t.z])
                         
                         # Apply quaternion multiplication manually
                         q1 = R.from_quat([r.x, r.y, r.z, r.w])  # Map -> Camera
