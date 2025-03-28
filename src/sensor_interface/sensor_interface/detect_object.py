@@ -116,7 +116,7 @@ class ArucoDetector(Node):
                     self.get_logger().info(f"Rotation: x={transformed_msg.transform.rotation.x}, y={transformed_msg.transform.rotation.y}, z={transformed_msg.transform.rotation.z}, w={transformed_msg.transform.rotation.w}")
 
                     self.get_logger().info("Transform successfully published!")
-                    self.get_logger().info(f"Published Transform: {transformed_msg.child_frame_id}")
+                    self.get_logger().info(f"Published Transform: {transformed_msg.header.frame_id}")
 
         except Exception as e:
             self.get_logger().error(f"Error processing image: {e}")
