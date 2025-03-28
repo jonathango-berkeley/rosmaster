@@ -56,6 +56,10 @@ class ArucoDetector(Node):
 
         self.dist_coeffs = np.zeros((5, 1), dtype=np.float64)
 
+        # TF Listener
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+
     def listener_callback(self, msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -93,18 +97,26 @@ class ArucoDetector(Node):
                     transform_msg.transform.rotation.z = quat[2]
                     transform_msg.transform.rotation.w = quat[3]
 
-                    self.get_logger().info(f"Publishing Transform to aruco/transform: {transform_msg.child_frame_id}")
-                    self.get_logger().info(f"Translation: x={transform_msg.transform.translation.x}, y={transform_msg.transform.translation.y}, z={transform_msg.transform.translation.z}")
-                    self.get_logger().info(f"Rotation: x={transform_msg.transform.rotation.x}, y={transform_msg.transform.rotation.y}, z={transform_msg.transform.rotation.z}, w={transform_msg.transform.rotation.w}")
+                    # Transform to map frame
+                    try:
+                        transform_map_to_camera = self.tf_buffer.lookup_transform("map", "camera_link", rclpy.time.Time())
+                        transformed_msg = tf2_ros.do_transform_transform(transform_msg, transform_map_to_camera)
+                        transformed_msg.header.frame_id = "map"
+                        self.transform_pub.publish(transformed_msg)
+                        self.tf_broadcaster.sendTransform(transformed_msg)
+                    except tf2_ros.LookupException:
+                        self.get_logger().warn("TF Lookup failed: map -> camera_link")
+                    except tf2_ros.ConnectivityException:
+                        self.get_logger().warn("TF Connectivity issue")
+                    except tf2_ros.ExtrapolationException:
+                        self.get_logger().warn("TF Extrapolation issue")
 
-                    self.transform_pub.publish(transform_msg)
-                    self.tf_broadcaster.sendTransform(transform_msg)
+                    self.get_logger().info(f"Publishing Transform to aruco/transform: {transformed_msg.child_frame_id}")
+                    self.get_logger().info(f"Translation: x={transformed_msg.transform.translation.x}, y={transformed_msg.transform.translation.y}, z={transformed_msg.transform.translation.z}")
+                    self.get_logger().info(f"Rotation: x={transformed_msg.transform.rotation.x}, y={transformed_msg.transform.rotation.y}, z={transformed_msg.transform.rotation.z}, w={transformed_msg.transform.rotation.w}")
 
                     self.get_logger().info("Transform successfully published!")
-                    self.get_logger().info(f"Published Transform: {transform_msg.child_frame_id}")
-
-            cv2.imshow("Aruco Detection with Pose", cv_image)
-            cv2.waitKey(1)
+                    self.get_logger().info(f"Published Transform: {transformed_msg.child_frame_id}")
 
         except Exception as e:
             self.get_logger().error(f"Error processing image: {e}")
