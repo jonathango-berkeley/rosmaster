@@ -12,6 +12,7 @@ import cv2.aruco as aruco
 import numpy as np
 from scipy.spatial.transform import Rotation as R  # Using SciPy for quaternion conversion
 import tf2_ros
+import tf_transformations
 
 
 def drawAxisCustom(img, camera_matrix, dist_coeffs, rvec, tvec, length=0.05):
@@ -100,10 +101,32 @@ class ArucoDetector(Node):
                     # Transform to map frame
                     try:
                         transform_map_to_camera = self.tf_buffer.lookup_transform("map", "camera_link", rclpy.time.Time())
-                        transformed_msg = tf2_ros.do_transform_transform(transform_msg, transform_map_to_camera)
+                        
+                        # Extract translation and rotation from transform
+                        t = transform_map_to_camera.transform.translation
+                        r = transform_map_to_camera.transform.rotation
+                        
+                        # Apply transformation to position
+                        tvec_transformed = np.array([tvec[0] + t.x, tvec[1] + t.y, tvec[2] + t.z])
+                        
+                        # Apply quaternion multiplication to get new rotation
+                        q1 = np.array([r.x, r.y, r.z, r.w])  # Map -> Camera
+                        q2 = np.array([quat[0], quat[1], quat[2], quat[3]])  # Camera -> Object
+                        q_result = tf_transformations.quaternion_multiply(q1, q2)
+                        
+                        transformed_msg = TransformStamped()
+                        transformed_msg.header.stamp = self.get_clock().now().to_msg()
                         transformed_msg.header.frame_id = "map"
+                        transformed_msg.child_frame_id = "detected_object"
+                        transformed_msg.transform.translation.x = tvec_transformed[0]
+                        transformed_msg.transform.translation.y = tvec_transformed[1]
+                        transformed_msg.transform.translation.z = tvec_transformed[2]
+                        transformed_msg.transform.rotation.x = q_result[0]
+                        transformed_msg.transform.rotation.y = q_result[1]
+                        transformed_msg.transform.rotation.z = q_result[2]
+                        transformed_msg.transform.rotation.w = q_result[3]
+                        
                         self.transform_pub.publish(transformed_msg)
-                        self.tf_broadcaster.sendTransform(transformed_msg)
                     except tf2_ros.LookupException:
                         self.get_logger().warn("TF Lookup failed: map -> camera_link")
                     except tf2_ros.ConnectivityException:
