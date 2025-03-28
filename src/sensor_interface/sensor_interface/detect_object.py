@@ -73,28 +73,13 @@ class ArucoDetector(Node):
             if ids is not None:
                 self.get_logger().info("ArUco Marker detected!")
                 rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, self.marker_length, self.camera_matrix, self.dist_coeffs)
-                cv_image = aruco.drawDetectedMarkers(cv_image, corners, ids)
 
                 for i in range(len(ids)):
                     rvec = rvecs[i]
                     tvec = tvecs[i]
 
-                    cv_image = drawAxisCustom(cv_image, self.camera_matrix, self.dist_coeffs, rvec, tvec, self.marker_length * 0.5)
-
                     rmat, _ = cv2.Rodrigues(rvec)
                     quat = R.from_matrix(rmat).as_quat()
-
-                    transform_msg = TransformStamped()
-                    transform_msg.header.stamp = self.get_clock().now().to_msg()
-                    transform_msg.header.frame_id = "camera_link"
-                    transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
-                    transform_msg.transform.translation.x = tvec[0][0]
-                    transform_msg.transform.translation.y = tvec[0][1]
-                    transform_msg.transform.translation.z = tvec[0][2]
-                    transform_msg.transform.rotation.x = quat[0]
-                    transform_msg.transform.rotation.y = quat[1]
-                    transform_msg.transform.rotation.z = quat[2]
-                    transform_msg.transform.rotation.w = quat[3]
 
                     # Transform to map frame
                     try:
@@ -115,7 +100,7 @@ class ArucoDetector(Node):
                         transformed_msg = TransformStamped()
                         transformed_msg.header.stamp = self.get_clock().now().to_msg()
                         transformed_msg.header.frame_id = "map"
-                        transformed_msg.child_frame_id = "detected_object"
+                        transformed_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
                         transformed_msg.transform.translation.x = tvec_transformed[0]
                         transformed_msg.transform.translation.y = tvec_transformed[1]
                         transformed_msg.transform.translation.z = tvec_transformed[2]
