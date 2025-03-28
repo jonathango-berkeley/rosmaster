@@ -109,10 +109,10 @@ class ArucoDetector(Node):
                         # Apply transformation to position
                         tvec_transformed = np.array([tvec[0] + t.x, tvec[1] + t.y, tvec[2] + t.z])
                         
-                        # Apply quaternion multiplication to get new rotation
-                        q1 = np.array([r.x, r.y, r.z, r.w])  # Map -> Camera
-                        q2 = np.array([quat[0], quat[1], quat[2], quat[3]])  # Camera -> Object
-                        q_result = tf_transformations.quaternion_multiply(q1, q2)
+                        # Apply quaternion multiplication manually
+                        q1 = R.from_quat([r.x, r.y, r.z, r.w])  # Map -> Camera
+                        q2 = R.from_quat([quat[0], quat[1], quat[2], quat[3]])  # Camera -> Object
+                        q_result = q1 * q2  # Equivalent to quaternion multiplication
                         
                         transformed_msg = TransformStamped()
                         transformed_msg.header.stamp = self.get_clock().now().to_msg()
@@ -121,10 +121,10 @@ class ArucoDetector(Node):
                         transformed_msg.transform.translation.x = tvec_transformed[0]
                         transformed_msg.transform.translation.y = tvec_transformed[1]
                         transformed_msg.transform.translation.z = tvec_transformed[2]
-                        transformed_msg.transform.rotation.x = q_result[0]
-                        transformed_msg.transform.rotation.y = q_result[1]
-                        transformed_msg.transform.rotation.z = q_result[2]
-                        transformed_msg.transform.rotation.w = q_result[3]
+                        transformed_msg.transform.rotation.x = q_result.as_quat()[0]
+                        transformed_msg.transform.rotation.y = q_result.as_quat()[1]
+                        transformed_msg.transform.rotation.z = q_result.as_quat()[2]
+                        transformed_msg.transform.rotation.w = q_result.as_quat()[3]
                         
                         self.transform_pub.publish(transformed_msg)
                     except tf2_ros.LookupException:
