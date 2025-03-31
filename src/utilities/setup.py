@@ -23,7 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            # Add your node executable here
+            'rescue_robot = utilities.rescue_robot:main',
         ],
     },
 )
