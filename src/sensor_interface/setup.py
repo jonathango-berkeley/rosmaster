@@ -15,7 +15,12 @@ setup(
         # Install the launch folder
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
     ],
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'opencv-contrib-python',
+        'numpy',
+        'scipy',
+    ],
     zip_safe=True,
     maintainer='rosmaster',
     maintainer_email='jonathango@berkeley.edu',
