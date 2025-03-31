@@ -69,6 +69,20 @@ class RescueRobot:
             self.node.get_logger().warn(f"TF lookup failed: {e}")
 
 
+    def spin(self):
+        self.node.get_logger().info("Robot is running...")
+        try:
+            rclpy.spin(self.node)
+        except KeyboardInterrupt:
+            self.node.get_logger().info("Shutting down robot...")
+        finally:
+            self.shutdown()
+
+    def shutdown(self):
+        self.node.get_logger().info("Cleaning up resources.")
+        self.node.destroy_node()
+        rclpy.shutdown()
+
 def main():
     robot = RescueRobot()
     robot.spin()
