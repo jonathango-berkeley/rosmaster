@@ -82,6 +82,9 @@ class Robot:
         self.node.destroy_node()
         rclpy.shutdown()
 
-if __name__ == '__main__':
+def main():
     robot = Robot()
     robot.spin()
+
+if __name__ == '__main__':
+    main()
