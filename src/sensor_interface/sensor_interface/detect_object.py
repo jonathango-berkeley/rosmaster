@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 os.environ["DISPLAY"] = ":0"
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -12,6 +13,7 @@ import cv2.aruco as aruco
 import numpy as np
 from scipy.spatial.transform import Rotation as R  # Using SciPy for quaternion conversion
 import tf2_ros
+
 
 def drawAxisCustom(img, camera_matrix, dist_coeffs, rvec, tvec, length=0.05):
     axis = np.float32([[0, 0, 0],
@@ -41,7 +43,6 @@ class ArucoDetector(Node):
 
         self.transform_pub = self.create_publisher(TransformStamped, 'aruco/transform', 10)
         self.object_detected_pub = self.create_publisher(Bool, '/object_detected', 10)
-
         self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
 
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
@@ -84,19 +85,19 @@ class ArucoDetector(Node):
                     # Transform to map frame
                     try:
                         transform_map_to_camera = self.tf_buffer.lookup_transform("map", "camera_link", rclpy.time.Time())
-                        
+
                         # Extract translation and rotation from transform
                         t = transform_map_to_camera.transform.translation
                         r = transform_map_to_camera.transform.rotation
-                        
+
                         # Apply transformation to position
                         tvec_transformed = np.array([tvec[0][0] + t.x, tvec[0][1] + t.y, tvec[0][2] + t.z])
-                        
+
                         # Apply quaternion multiplication manually
                         q1 = R.from_quat([r.x, r.y, r.z, r.w])  # Map -> Camera
                         q2 = R.from_quat([quat[0], quat[1], quat[2], quat[3]])  # Camera -> Object
                         q_result = q1 * q2  # Equivalent to quaternion multiplication
-                        
+
                         transformed_msg = TransformStamped()
                         transformed_msg.header.stamp = self.get_clock().now().to_msg()
                         transformed_msg.header.frame_id = "map"
@@ -108,21 +109,23 @@ class ArucoDetector(Node):
                         transformed_msg.transform.rotation.y = q_result.as_quat()[1]
                         transformed_msg.transform.rotation.z = q_result.as_quat()[2]
                         transformed_msg.transform.rotation.w = q_result.as_quat()[3]
-                        
+
                         self.transform_pub.publish(transformed_msg)
+                        self.tf_broadcaster.sendTransform(transformed_msg)
+
+                        self.get_logger().info(f"Publishing Transform to aruco/transform: {transformed_msg.child_frame_id}")
+                        self.get_logger().info(f"Translation: x={transformed_msg.transform.translation.x}, y={transformed_msg.transform.translation.y}, z={transformed_msg.transform.translation.z}")
+                        self.get_logger().info(f"Rotation: x={transformed_msg.transform.rotation.x}, y={transformed_msg.transform.rotation.y}, z={transformed_msg.transform.rotation.z}, w={transformed_msg.transform.rotation.w}")
+
+                        self.get_logger().info("Transform successfully published!")
+                        self.get_logger().info(f"Published Transform: {transformed_msg.header.frame_id}")
+
                     except tf2_ros.LookupException:
                         self.get_logger().warn("TF Lookup failed: map -> camera_link")
                     except tf2_ros.ConnectivityException:
                         self.get_logger().warn("TF Connectivity issue")
                     except tf2_ros.ExtrapolationException:
                         self.get_logger().warn("TF Extrapolation issue")
-
-                    self.get_logger().info(f"Publishing Transform to aruco/transform: {transformed_msg.child_frame_id}")
-                    self.get_logger().info(f"Translation: x={transformed_msg.transform.translation.x}, y={transformed_msg.transform.translation.y}, z={transformed_msg.transform.translation.z}")
-                    self.get_logger().info(f"Rotation: x={transformed_msg.transform.rotation.x}, y={transformed_msg.transform.rotation.y}, z={transformed_msg.transform.rotation.z}, w={transformed_msg.transform.rotation.w}")
-
-                    self.get_logger().info("Transform successfully published!")
-                    self.get_logger().info(f"Published Transform: {transformed_msg.header.frame_id}")
 
         except Exception as e:
             self.get_logger().error(f"Error processing image: {e}")
