@@ -31,6 +31,8 @@ setup(
         'console_scripts': [
             'camera = sensor_interface.camera:main',
             'detect_object = sensor_interface.detect_object:main',
+            'transform_filter = sensor_interface.transform_filter:main',
+            'pose_publisher = sensor_interface.pose_publisher:main',
         ],
     },
 )
