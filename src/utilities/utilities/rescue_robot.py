@@ -15,10 +15,8 @@ class RescueRobot:
         self.node = rclpy.create_node('rescue_robot_main')
         self.node.get_logger().info("RescueRobot initialization started.")
 
-        # Robot pose
-        self.x = 0.0
-        self.y = 0.0
-        self.yaw = 0.0
+        # Robot state
+        self.rescue_mode = False
 
         # TF buffer
         self.tf_buffer = Buffer()
@@ -28,6 +26,16 @@ class RescueRobot:
         self.map_data = None
         self.map_received = False  # <- log-once flag
 
+        # Aruco Data
+        self.aruco_sub = self.node.create_subscription(
+            TransformStamped,
+            '/aruco/transform',
+            self.aruco_callback,
+            10
+        )
+        self.aruco_queue = {}
+        self.aruco_saved = []
+
         # Subscriptions
         self.map_sub = self.node.create_subscription(
             OccupancyGrid,
@@ -35,9 +43,6 @@ class RescueRobot:
             self.map_callback,
             10
         )
-
-        # Timer for pose updates
-        self.timer = self.node.create_timer(0.1, self.update_position)
 
         self.node.get_logger().info("RescueRobot ready.")
 
@@ -47,27 +52,44 @@ class RescueRobot:
             self.node.get_logger().info("Map received and updated.")
             self.map_received = True
 
-    def update_position(self):
+    def aruco_callback(self, msg: TransformStamped):
+        if msg.child_frame_id in self.aruco_saved:
+            return
+
+        found_location = self.get_position()
+        if msg.child_frame_id in self.aruco_queue.keys:
+            self.aruco_queue[msg.child_frame_id]["found_location"] = found_location
+            if len(self.aruco_queue[msg.child_frame_id]["last_10"]) > 10:
+                self.aruco_queue[msg.child_frame_id]["last_10"].pop(0)
+
+            self.aruco_queue[msg.child_frame_id]["last_10"].append(msg)
+            self.aruco_queue[msg.child_frame_id]["location"] = self.filter_location(self.aruco_queue[msg.child_frame_id]["last_10"])
+        else:
+            self.aruco_queue[msg.child_frame_id] = {
+                "location": msg,
+                "found_location": found_location,
+                "last_10": [msg]
+            }
+    
+    def remove_object(self, child_frame_id):
+        self.aruco_queue.pop(child_frame_id)
+        self.aruco_saved.append(child_frame_id)
+
+    def get_position(self):
         try:
             now = rclpy.time.Time()
             trans: TransformStamped = self.tf_buffer.lookup_transform(
                 'odom', 'base_link', now, timeout=rclpy.duration.Duration(seconds=1.0)
             )
-            self.x = trans.transform.translation.x
-            self.y = trans.transform.translation.y
 
-            q = trans.transform.rotation
-            siny_cosp = 2 * (q.w * q.z + q.x * q.y)
-            cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
-            self.yaw = math.atan2(siny_cosp, cosy_cosp)
-
-            self.node.get_logger().info(
-                f"Robot pose: x={self.x:.2f}, y={self.y:.2f}, yaw={math.degrees(self.yaw):.1f}°"
-            )
+            return trans
 
         except Exception as e:
             self.node.get_logger().warn(f"TF lookup failed: {e}")
 
+    def filter_location(self, last_10):
+        # TODO
+        return last_10[-1]
 
     def spin(self):
         self.node.get_logger().info("Robot is running...")
