@@ -6,6 +6,7 @@ from std_msgs.msg import Bool
 
 #waypoints
 waypoints = {
+    "base": [0, 0],
     "A": [0, 1.5239],
     "B": [1.5239, 1.5239],
     "C": [1.5239, 0],
@@ -63,6 +64,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        self.get_logger().info("Node for exploration waypoints is shutdown!")
         node.destroy_node()
         rclpy.shutdown()
 
