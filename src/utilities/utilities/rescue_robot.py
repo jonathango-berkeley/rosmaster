@@ -3,8 +3,11 @@
 import rclpy
 from rclpy.node import Node
 
+import numpy as np
+from scipy.spatial.transform import Rotation as R
+
 from tf2_ros import TransformListener, Buffer
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, PoseStamped
 from nav_msgs.msg import OccupancyGrid
 
 import math
@@ -41,6 +44,13 @@ class RescueRobot:
             OccupancyGrid,
             '/map',
             self.map_callback,
+            10
+        )
+
+        # Publisher
+        self.pose_publisher = self.create_publisher(
+            PoseStamped,
+            '/goal_pose',
             10
         )
 
@@ -90,11 +100,61 @@ class RescueRobot:
         except Exception as e:
             self.node.get_logger().warn(f"TF lookup failed: {e}")
 
-    def filter_location(self, last_10):
-        # TODO
-        filtered_location = last_10[-1]
+    def filter_location(self, transforms):
+        positions = []
+        quaternions = []
 
-        return filtered_location
+        for msg in transforms:
+            t = msg.transform.translation
+            q = msg.transform.rotation
+            positions.append([t.x, t.y, t.z])
+            quaternions.append([q.x, q.y, q.z, q.w])
+
+        # Average position
+        avg_pos = np.mean(positions, axis=0)
+
+        # Average quaternion using scipy Rotation
+        avg_rot = R.from_quat(quaternions).mean().as_quat()
+
+        # Use the last transform's header and child_frame_id
+        last_msg = transforms[-1]
+        filtered_msg = TransformStamped()
+        filtered_msg.header.stamp = last_msg.header.stamp
+        filtered_msg.header.frame_id = last_msg.header.frame_id
+        filtered_msg.child_frame_id = last_msg.child_frame_id
+
+        filtered_msg.transform.translation.x = avg_pos[0]
+        filtered_msg.transform.translation.y = avg_pos[1]
+        filtered_msg.transform.translation.z = avg_pos[2]
+        filtered_msg.transform.rotation.x = avg_rot[0]
+        filtered_msg.transform.rotation.y = avg_rot[1]
+        filtered_msg.transform.rotation.z = avg_rot[2]
+        filtered_msg.transform.rotation.w = avg_rot[3]
+
+        return filtered_msg
+    
+    def run_robot(self, pose):
+        pose_msg = PoseStamped()
+        pose_msg.header.stamp = pose.header.stamp
+        pose_msg.header.frame_id = pose.header.frame_id  # e.g., "map"
+
+        pose_msg.pose.position.x = pose.transform.translation.x
+        pose_msg.pose.position.y = pose.transform.translation.y
+        pose_msg.pose.position.z = pose.transform.translation.z
+
+        pose_msg.pose.orientation.x = pose.transform.rotation.x
+        pose_msg.pose.orientation.y = pose.transform.rotation.y
+        pose_msg.pose.orientation.z = pose.transform.rotation.z
+        pose_msg.pose.orientation.w = pose.transform.rotation.w
+
+        self.pose_publisher.publish(pose_msg)
+        self.get_logger().info("Published PoseStamped to /goal_pose")
+
+    def is_arrived(self, pose):
+        pass
+
+    def search_and_rescue(self):
+        pass
 
     def spin(self):
         self.node.get_logger().info("Robot is running...")
