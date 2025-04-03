@@ -72,8 +72,11 @@ class RescueRobot:
             }
     
     def remove_object(self, child_frame_id):
-        self.aruco_queue.pop(child_frame_id)
-        self.aruco_saved.append(child_frame_id)
+        try:
+            self.aruco_queue.pop(child_frame_id)
+            self.aruco_saved.append(child_frame_id)
+        except KeyError:
+            self.node.get_logger().error(f"Key {child_frame_id} not found")
 
     def get_position(self):
         try:
@@ -89,7 +92,9 @@ class RescueRobot:
 
     def filter_location(self, last_10):
         # TODO
-        return last_10[-1]
+        filtered_location = last_10[-1]
+
+        return filtered_location
 
     def spin(self):
         self.node.get_logger().info("Robot is running...")
