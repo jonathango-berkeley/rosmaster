@@ -47,14 +47,14 @@ class ExploreHard(Node):
             
             #set new waypoint
             self.curr_waypoint = waypoints[self.last_waypoint]
-            pub_msg.pose.position.x = self.curr_waypoint[0]
-            pub_msg.pose.position.y = self.curr_waypoint[1]
+            pub_msg.pose.position.x = float(self.curr_waypoint[0])
+            pub_msg.pose.position.y = float(self.curr_waypoint[1])
 
             pub_msg.pose.orientation.w = 1.0  #orientation?
             
             #publish
             self.publisher.publish(pub_msg)
-            self.get_logger().info(f'Published new waypoint: {self.last_waypoint}:  {self.curr_waypoint}')    
+            self.get_logger().info(f'Published new waypoint: {self.last_waypoint} {self.curr_waypoint}')    
 
 def main(args=None):
     rclpy.init(args=args)
@@ -64,7 +64,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        self.get_logger().info("Node for exploration waypoints is shutdown!")
+        node.get_logger().info("Node for exploration waypoints is shutdown!")
         node.destroy_node()
         rclpy.shutdown()
 
