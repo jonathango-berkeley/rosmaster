@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
+import sys
+import os
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Bool
 from nav_msgs.msg import OccupancyGrid
 
-import resource.a_star_Gutsav_v4 as a_star
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resource')))
+import a_star_Gutsav_v4 as a_star
 
 #gobal parameters
 waypoints = {
@@ -23,7 +26,7 @@ class ExploreHard(Node):
         
         #subscriber
         self.subscriber = self.create_subscription(Bool, '/next_waypoint', self.publish_waypoint, 10)
-        self.map_subscriber = self.create_subscription(OccupancyGrid, '/map', self.map_callback)
+        self.map_subscriber = self.create_subscription(OccupancyGrid, '/map', self.map_callback, 1)
         
         #publisher
         self.publisher = self.create_publisher(PoseStamped, '/goal_pose', 10)
@@ -63,7 +66,7 @@ class ExploreHard(Node):
                 #transform waypoints[self.goal_waypoint] and waypoints[self.prev_waypoint] into map coordinates
                 
                 #plan path
-                trajectory = a_star.a_star(self.current_map, map_goalpoint, map_startpoint)
+                #trajectory = a_star.a_star(self.current_map, map_goalpoint, map_startpoint)
                 
                 #transform trajectory back to real world coordinates
                 
