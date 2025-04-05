@@ -61,7 +61,7 @@ def get_nei(grid, curr):
     
     nei_nodes = []    #list where neighbor nodes are added
     
-    for j in range(4):
+    for j in range(len(direc)):
         
         direc_j = direc[j,:]
         
@@ -75,7 +75,7 @@ def get_nei(grid, curr):
 
 #########################################################
 
-def dis_curr_nei(curr, nei_node, prev_node):
+def dis_curr_nei(curr, nei_node):
     dis = math.sqrt(((curr.x - nei_node.x)**2) + ((curr.y - nei_node.y)**2))    #distance between two nodes
     
     #penalty if direction changes
@@ -185,8 +185,7 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
     #grid = add_walls(grid)
     start = grid[start_coor[1]][start_coor[0]]
     end = grid[end_coor[1]][end_coor[0]]
-    #print("start",start.x, start.y)
-    #print("end",end.x, end.y)
+    
     came_from = {}    #dictionary where keys are node coordinates and values is previous node
     next_nodes = []    #list where nodes are added which are to be examined next
     examined_nodes = []    #list where nodes are added that which were examined
@@ -195,10 +194,11 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
     start.end_dis = dis_curr_end(start, end)    #distance to end node
 
     next_nodes.append(start)    #first node to examine
-    #print("next nodes:",next_nodes)
     grid = add_buffer(grid, buffer, start, end)    #add buffer zone
     #grid = free_se(grid, buffer, start, end)
+    
     count = 0
+    
     while len(next_nodes) > 0:    #loop until all nodes are examined
         print(f'Finding path, nodes examined: {(count / (len(grid) * len(grid[0])))*100:.2f} %', end = '\r')
         count = count + 1
@@ -212,7 +212,7 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
             return path
 
         nei_nodes = get_nei(grid, curr)    #get neighbor nodes of current node
-
+        """
         # Retrieve the previous node from came_from to get prev_dir
         key = f"{curr.x} {curr.y}"
         if key in came_from:
@@ -222,7 +222,7 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
                 prev_node = Node(start.x - 1, start.y)  #horizontal
             elif abs(start.y - end.y) > abs(start.x - end.x):
                 prev_node = Node(start.x, start.y - 1)  #vertical
-
+        """
 
         for i in range(len(nei_nodes)):
             
@@ -236,7 +236,7 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
             if adj_node_1.type > 50 and adj_node_2.type > 50:    #do not examine diagonal neighbor node if both adjacent neighbor nodes are occupied
                 continue
 
-            start_dis_nei = curr.start_dis + dis_curr_nei(curr, nei_node, prev_node)    #distance from neighbor node to start
+            start_dis_nei = curr.start_dis + dis_curr_nei(curr, nei_node)    #distance from neighbor node to start
             if nei_node not in next_nodes:    #add nei_node to next_nodes
                 next_nodes.append(nei_node)
 
@@ -278,8 +278,8 @@ def plot(occupancy_grid_msg, start, end):
                 poc1_x.append(grid[i][j].x)
                 poc1_y.append(grid[i][j].y)
                 
-    plt.plot(oc1_x, oc1_y, 's', color='black', markersize=0.05)
-    plt.plot(poc1_x, poc1_y, 's', color='grey', markersize=0.05)
+    plt.plot(oc1_y, oc1_x, 's', color='black', markersize=0.05)
+    plt.plot(poc1_y, poc1_x, 's', color='grey', markersize=0.05)
 
     plt.axis('equal')
     
@@ -305,9 +305,9 @@ def plot(occupancy_grid_msg, start, end):
                 poc1_x.append(grid[i][j].x)
                 poc1_y.append(grid[i][j].y)
                 
-    plt.plot(path1_x, path1_y, color='red', linewidth=1, marker='o', markersize=0.01)
-    plt.plot(oc1_x, oc1_y, 's', color='black', markersize=0.05)
-    plt.plot(poc1_x, poc1_y, 's', color='grey', markersize=0.05)
+    plt.plot(path1_y, path1_x, color='red', linewidth=1, marker='o', markersize=0.01)
+    plt.plot(oc1_y, oc1_x, 's', color='black', markersize=0.05)
+    plt.plot(poc1_y, poc1_x, 's', color='grey', markersize=0.05)
 
     plt.axis('equal')
     

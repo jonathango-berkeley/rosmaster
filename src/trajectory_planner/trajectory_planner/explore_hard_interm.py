@@ -55,6 +55,7 @@ class ExploreHard(Node):
                 self.count_interm_wayp = 0
                 self.interm_wayp.clear()
                 if next_key in waypoints:    #test if key is in waypoints
+                    self.prev_waypoint = self.goal_waypoint
                     self.goal_waypoint = next_key
                 else:
                     self.get_logger().warn("No more waypoints!")
@@ -63,14 +64,25 @@ class ExploreHard(Node):
             #set waypoint (intermediate or goal)
             if not self.interm_wayp:
                 
-                #transform waypoints[self.goal_waypoint] and waypoints[self.prev_waypoint] into map coordinates
+                #transform goal_waypoint and prev_waypoint into map coordinates (cells)
+                res = self.current_map.info.resolution
+                goal_x = int(waypoints[self.goal_waypoint][0]/res)
+                goal_y = int(waypoints[self.goal_waypoint][1]/res)
+                prev_x = int(waypoints[self.prev_waypoint][0]/res)
+                prev_y = int(waypoints[self.prev_waypoint][1]/res)
                 
                 #plan path
-                #trajectory = a_star.a_star(self.current_map, map_goalpoint, map_startpoint)
-                
-                #transform trajectory back to real world coordinates
+                #a_star.plot(self.current_map, [prev_x, prev_y], [goal_x, goal_y])
+                trajectory = a_star.a_star(self.current_map, [prev_x, prev_y], [goal_x, goal_y])
                 
                 #extract intermediate waypoints
+                k, m = divmod(len(trajectory), num_interm_wayp + 1)
+                parts = [trajectory[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(num_interm_wayp + 1)]    #dividing the list of waypoints
+                waypoints_map = [parts[i][-1] for i in range(num_interm_wayp)]    #extracting intermediate waypoints
+                
+                #extracting cell coordinates and transform back to real world coordinates
+                for i in range(len(waypoints_map)):
+                    self.interm_wayp.append([waypoints_map[i].y * res, waypoints_map[i].x * res])
                 
                 self.interm_wayp.append(waypoints[self.goal_waypoint])
                 self.curr_waypoint = self.interm_wayp[self.count_interm_wayp]
