@@ -10,7 +10,14 @@ from tf2_ros import TransformListener, Buffer
 from geometry_msgs.msg import TransformStamped, PoseStamped
 from nav_msgs.msg import OccupancyGrid
 
+import sys
+import signal
+import Hobot.GPIO as GPIO
+
 import math
+
+def clean_exit(signal, frame):
+    sys.exit(0)
 
 class RescueRobot:
     def __init__(self):
@@ -54,6 +61,12 @@ class RescueRobot:
             10
         )
 
+        # Setup Magnet
+        self.PIN = 32
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.PIN, GPIO.OUT, initial=GPIO.LOW)
+
         self.node.get_logger().info("RescueRobot ready.")
 
     def map_callback(self, msg: OccupancyGrid):
@@ -92,7 +105,7 @@ class RescueRobot:
         try:
             now = rclpy.time.Time()
             trans: TransformStamped = self.tf_buffer.lookup_transform(
-                'odom', 'base_link', now, timeout=rclpy.duration.Duration(seconds=1.0)
+                "map", 'base_link', now, timeout=rclpy.duration.Duration(seconds=1.0)
             )
 
             return trans
@@ -150,7 +163,16 @@ class RescueRobot:
         self.pose_publisher.publish(pose_msg)
         self.get_logger().info("Published PoseStamped to /goal_pose")
 
-    def is_arrived(self, pose):
+    def switch_magnet(self, state):
+        if state:
+            GPIO.output(self.PIN, GPIO.HIGH)
+            self.get_logger().info("Set Magnet to ON")
+        else:
+            GPIO.output(self.PIN, GPIO.LOW)
+            self.get_logger().info("Set Magnet to OFF")
+
+
+    def is_arrived(self):
         pass
 
     def search_and_rescue(self):
@@ -166,11 +188,13 @@ class RescueRobot:
             self.shutdown()
 
     def shutdown(self):
+        GPIO.cleanup()
         self.node.get_logger().info("Cleaning up resources.")
         self.node.destroy_node()
         rclpy.shutdown()
 
 def main():
+    signal.signal(signal.SIGINT, clean_exit)
     robot = RescueRobot()
     robot.spin()
 
