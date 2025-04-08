@@ -31,6 +31,7 @@ setup(
         'console_scripts': [
             'camera = sensor_interface.camera:main',
             'detect_object = sensor_interface.detect_object:main',
+            'magnet = sensor_interface.magnet:main',
         ],
     },
 )

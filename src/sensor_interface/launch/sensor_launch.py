@@ -14,5 +14,11 @@ def generate_launch_description():
             executable='detect_object',
             name='detect_object_node',
             output='screen'
+        ),
+        Node(
+            package='sensor_interface',
+            executable='magnet',
+            name='magnet_controller',
+            output='screen'
         )
     ])
