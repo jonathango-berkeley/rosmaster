@@ -8,6 +8,8 @@ input("move robot to a different location through rviz and hit enter")
 
 robot.run_robot(initial_position)
 
-if robot.is_arrived():
-    print("Robot is Arrived")
+while True:
+    if robot.is_arrived():
+        print("Robot is Arrived")
+        break
 
