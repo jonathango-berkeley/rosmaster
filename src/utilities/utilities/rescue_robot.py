@@ -186,6 +186,7 @@ class RescueRobot:
 
 
     def is_arrived(self):
+        threshold = 0.1
         if self.goal_pose is None:
             self.get_logger().warn("goal pose has not been received")
             return False
@@ -199,8 +200,7 @@ class RescueRobot:
         # Calculate the Euclidean distance between the current pose and the target pose
         dx = current_tf.transform.translation.x - self.goal_pose.pose.position.x
         dy = current_tf.transform.translation.y - self.goal_pose.pose.position.y
-        dz = current_tf.transform.translation.z - self.goal_pose.pose.position.z
-        distance = math.sqrt(dx**2 + dy**2 + dz**2)
+        distance = math.sqrt(dx**2 + dy**2)
         self.get_logger().info(f"Current distance from goal: {distance:.3f}")
 
         return distance <= threshold

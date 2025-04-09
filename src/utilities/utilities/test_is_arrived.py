@@ -4,7 +4,7 @@ robot = RescueRobot()
 
 initial_position = robot.get_position()
 
-input("move robot to a different location through rviz and hit enter")
+input("move robot to a different location through rviz and hit enter!")
 
 robot.run_robot(initial_position)
 
