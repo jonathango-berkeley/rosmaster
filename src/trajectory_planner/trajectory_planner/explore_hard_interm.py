@@ -51,15 +51,19 @@ class ExploreHard(Node):
             elif waypoints[self.goal_waypoint] != self.curr_waypoint:
                 self.count_interm_wayp += 1
             else:
-                next_key = chr(ord(self.goal_waypoint) + 1)    #next unicode character
+                if self.goal_waypoint == "base":
+                    next_key = "A"    #restarts exploration (the script could also be stopped here)
+                else:
+                    next_key = chr(ord(self.goal_waypoint) + 1)    #next unicode character
                 self.count_interm_wayp = 0
                 self.interm_wayp.clear()
                 if next_key in waypoints:    #test if key is in waypoints
                     self.prev_waypoint = self.goal_waypoint
                     self.goal_waypoint = next_key
                 else:
-                    self.get_logger().warn("No more waypoints!")
-                    return
+                    self.prev_waypoint = self.goal_waypoint
+                    self.goal_waypoint = "base"
+                    self.get_logger().info("Return to the base!")
             
             #set waypoint (intermediate or goal)
             if not self.interm_wayp:
@@ -95,6 +99,8 @@ class ExploreHard(Node):
             
             pub_msg.pose.position.x = float(self.curr_waypoint[0])
             pub_msg.pose.position.y = float(self.curr_waypoint[1])
+            
+            #calculate orientation (facing towards the center)
 
             pub_msg.pose.orientation.w = 1.0  #orientation?
             
