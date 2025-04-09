@@ -102,7 +102,7 @@ class ExploreHard(Node):
             pub_msg.pose.position.y = float(self.curr_waypoint[1])
             
             #calculate orientation (facing towards the center)
-            if self.curr_waypoint == waypoints["D"]:
+            if self.curr_waypoint != waypoints["D"]:
                 dx = waypoints["D"][0] - self.curr_waypoint[0]
                 dy = waypoints["D"][1] - self.curr_waypoint[1]
             else:
