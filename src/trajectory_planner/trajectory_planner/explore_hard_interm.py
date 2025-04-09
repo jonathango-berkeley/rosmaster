@@ -2,6 +2,7 @@
 import sys
 import os
 import rclpy
+import math
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Bool
@@ -101,8 +102,16 @@ class ExploreHard(Node):
             pub_msg.pose.position.y = float(self.curr_waypoint[1])
             
             #calculate orientation (facing towards the center)
+            if self.curr_waypoint == waypoints["D"]:
+                dx = waypoints["D"][0] - self.curr_waypoint[0]
+                dy = waypoints["D"][1] - self.curr_waypoint[1]
+            else:
+                dx = waypoints["base"][0] - self.curr_waypoint[0]
+                dy = waypoints["base"][1] - self.curr_waypoint[1]
+            theta = math.atan2(dy, dx)
 
-            pub_msg.pose.orientation.w = 1.0  #orientation?
+            pub_msg.pose.orientation.z = math.sin(theta / 2.0)  #orientation?
+            pub_msg.pose.orientation.w = math.cos(theta / 2.0)  #orientation?
             
             #publish
             self.publisher.publish(pub_msg)
