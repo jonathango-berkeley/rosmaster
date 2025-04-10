@@ -186,7 +186,8 @@ class RescueRobot:
 
 
     def is_arrived(self):
-        threshold = 0.1
+        position_threshold = 0.1
+        orientation_threshold = math.radians(5.0)
         if self.goal_pose is None:
             self.get_logger().warn("goal pose has not been received")
             return False
@@ -202,8 +203,39 @@ class RescueRobot:
         dy = current_tf.transform.translation.y - self.goal_pose.pose.position.y
         distance = math.sqrt(dx**2 + dy**2)
         self.get_logger().info(f"Current distance from goal: {distance:.3f}")
+        # Current orientation quaternion
+        q_current = [
+            current_tf.transform.rotation.x,
+            current_tf.transform.rotation.y,
+            current_tf.transform.rotation.z,
+            current_tf.transform.rotation.w
+        ]
+        # Goal orientation quaternion
+        q_goal = [
+            self.goal_pose.pose.orientation.x,
+            self.goal_pose.pose.orientation.y,
+            self.goal_pose.pose.orientation.z,
+            self.goal_pose.pose.orientation.w
+        ]
+        # Wrap the current and goal quaternion into a Rotation object
+        r_current = R.from_quat(q_current)
+        r_goal = R.from_quat(q_goal)
 
-        return distance <= threshold
+        # The relative rotation is computed by the inverse of the current orientation multiplied by the target orientation.
+        r_diff = r_current.inv() * r_goal
+        # 'magnitude()' returns the rotation angle in radians for the relative rotation 'r_diff'.
+        angle_diff = r_diff.magnitude()
+        
+        self.get_logger().info(f"Orientation difference from goal: {math.degrees(angle_diff):.2f} degrees")
+        
+        if distance <= position_threshold and angle_diff <= orientation_threshold:
+            self.get_logger().info("Arrived at target position and orientation.")
+            # wait 2 seconds after arrival
+            time.sleep(2)
+            return True
+
+        return False
+  
 
     def search_and_rescue(self):
         pass
