@@ -27,9 +27,9 @@ num_interm_wayp = 2    #total number of intermediate waypoints (needs tuning)
         #####
 
     #####
-    #add this function to the masterscript to get next waypoint, if you call next_explore_waypoint(True)
-    def next_explore_waypoint(self, waypoint_request):
-        if waypoint_request:    #goes in if waypoint_request is true
+    #add this function to the masterscript to get next waypoint, if you call next_explore_waypoint()
+    def next_explore_waypoint(self):
+        if True:
             
             #set goal waypoint
             if self.goal_waypoint is None:
