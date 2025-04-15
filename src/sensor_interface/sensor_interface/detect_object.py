@@ -31,7 +31,7 @@ class ArucoDetector(Node):
 
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
         self.parameters = aruco.DetectorParameters()
-        self.marker_length = 0.05  # meters
+        self.marker_length = 0.032  # meters
 
         self.camera_matrix = np.array([[2640.2, 0, 1640],
                                        [0, 2640.2, 1232],
