@@ -70,7 +70,7 @@ class ArucoDetector(Node):
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
                     transform_msg.transform.translation.x = float(tvec[0][2])
-                    transform_msg.transform.translation.y = float(-tvec[0][0])
+                    transform_msg.transform.translation.y = float(-tvec[0][1])
                     transform_msg.transform.translation.z = float(0.0)
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])

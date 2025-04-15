@@ -59,6 +59,8 @@ class ArucoDetector(Node):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
+        self.y_calibrate = -0.3 # y axis calibration
+
     def listener_callback(self, msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -90,7 +92,7 @@ class ArucoDetector(Node):
                         r = transform_map_to_camera.transform.rotation
                         
                         # Apply transformation to position
-                        tvec_transformed = np.array([tvec[0][2] + t.x, -tvec[0][0] - t.y, 0])
+                        tvec_transformed = np.array([tvec[0][2] + t.x, -tvec[0][0] - t.y + self.y_calibrate, 0])
                         
 
                         # Apply quaternion multiplication manually
