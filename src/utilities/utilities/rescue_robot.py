@@ -105,7 +105,7 @@ class RescueRobot:
         try:
             now = rclpy.time.Time()
             trans: TransformStamped = self.tf_buffer.lookup_transform(
-                target_frmae='map', source_frame='base_link', time=now, timeout=rclpy.duration.Duration(seconds=1.0)
+                target_frame='map', source_frame='base_link', time=now, timeout=rclpy.duration.Duration(seconds=1.0)
             )
 
             return trans
