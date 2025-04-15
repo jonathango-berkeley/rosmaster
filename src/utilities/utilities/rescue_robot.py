@@ -104,11 +104,12 @@ class RescueRobot:
     def get_position(self):
         try:
             now = rclpy.time.Time()
-            trans: TransformStamped = self.tf_buffer.lookup_transform(
-                target_frame='map', source_frame='base_link', time=now, timeout=rclpy.duration.Duration(seconds=1.0)
-            )
+            transform = self.tf_buffer.lookup_transform(
+                'map',         # target_frame
+                'base_link',   # source_frame
+                now)  # latest available
 
-            return trans
+            return transform
 
         except Exception as e:
             self.node.get_logger().warn(f"TF lookup failed: {e}")
