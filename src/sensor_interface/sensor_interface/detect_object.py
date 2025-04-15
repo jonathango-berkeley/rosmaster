@@ -71,7 +71,7 @@ class ArucoDetector(Node):
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
                     transform_msg.transform.translation.x = float(tvec[0][0])
                     transform_msg.transform.translation.y = float(tvec[0][1])
-                    transform_msg.transform.translation.z = float(tvec[0][2])
+                    transform_msg.transform.translation.z = 0
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])
                     transform_msg.transform.rotation.z = float(quat[2])
