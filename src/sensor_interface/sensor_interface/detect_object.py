@@ -69,7 +69,7 @@ class ArucoDetector(Node):
                     transform_msg.header.stamp = self.get_clock().now().to_msg()
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
-                    transform_msg.transform.translation.x = float(tvec[0][0])
+                    transform_msg.transform.translation.x = float(tvec[0][2])
                     transform_msg.transform.translation.y = float(tvec[0][1])
                     transform_msg.transform.translation.z = float(0.0)
                     transform_msg.transform.rotation.x = float(quat[0])
@@ -81,26 +81,6 @@ class ArucoDetector(Node):
                     self.tf_broadcaster.sendTransform(transform_msg)
 
                     self.get_logger().info(f"Published camera_link → aruco_marker_{ids[i][0]}")
-
-                    # Step 2: Lookup map → aruco_marker_<id>
-                    try:
-                        tf_map_to_marker = self.tf_buffer.lookup_transform(
-                            "map", transform_msg.child_frame_id, rclpy.time.Time(), timeout=rclpy.duration.Duration(seconds=0.5)
-                        )
-
-                        # Log the result
-                        pos = tf_map_to_marker.transform.translation
-                        rot = tf_map_to_marker.transform.rotation
-                        self.get_logger().info(f"[TF Lookup] map → {transform_msg.child_frame_id}")
-                        self.get_logger().info(f"Position → x: {pos.x:.2f}, y: {pos.y:.2f}, z: {pos.z:.2f}")
-                        self.get_logger().info(f"Rotation → x: {rot.x:.2f}, y: {rot.y:.2f}, z: {rot.z:.2f}, w: {rot.w:.2f}")
-
-                    except tf2_ros.LookupException:
-                        self.get_logger().warn(f"TF Lookup failed: map → {transform_msg.child_frame_id}")
-                    except tf2_ros.ConnectivityException:
-                        self.get_logger().warn("TF Connectivity issue")
-                    except tf2_ros.ExtrapolationException:
-                        self.get_logger().warn("TF Extrapolation issue")
 
         except Exception as e:
             self.get_logger().error(f"Error processing image: {e}")
