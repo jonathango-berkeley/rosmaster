@@ -15,6 +15,7 @@ import signal
 import Hobot.GPIO as GPIO
 
 import math
+import time
 
 def clean_exit(signal, frame):
     sys.exit(0)
@@ -103,18 +104,18 @@ class RescueRobot:
 
     def get_position(self):
         while True:
-            try:
-                now = rclpy.time.Time()
-                transform = self.tf_buffer.lookup_transform(
-                    'map',         # target_frame
-                    'base_link',   # source_frame
-                    now)  # latest available
-
+            now = rclpy.time.Time()
+            transform = self.tf_buffer.lookup_transform(
+                'map',         # target_frame
+                'base_link',   # source_frame
+                now)  # latest available
+            if transform:
                 return transform
+            else:
+                self.node.get_logger().warning(f"could not get loc, trying again")
 
-            except Exception as e:
-                self.node.get_logger().warn(f"TF lookup failed: {e}")
-                continue
+            time.sleep(1)
+        
 
     def filter_location(self, transforms):
         positions = []
