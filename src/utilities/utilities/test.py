@@ -2,5 +2,8 @@ from rescue_robot import RescueRobot
 
 robot = RescueRobot()
 
-while True:
-    print(robot.aruco_queue)
+origin = robot.get_position()
+
+input('enter!')
+
+robot.run_robot(origin)
