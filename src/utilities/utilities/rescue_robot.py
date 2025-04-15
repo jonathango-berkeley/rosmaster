@@ -102,17 +102,19 @@ class RescueRobot:
             self.node.get_logger().error(f"Key {child_frame_id} not found")
 
     def get_position(self):
-        try:
-            now = rclpy.time.Time()
-            transform = self.tf_buffer.lookup_transform(
-                'map',         # target_frame
-                'base_link',   # source_frame
-                now)  # latest available
+        while True:
+            try:
+                now = rclpy.time.Time()
+                transform = self.tf_buffer.lookup_transform(
+                    'map',         # target_frame
+                    'base_link',   # source_frame
+                    now)  # latest available
 
-            return transform
+                return transform
 
-        except Exception as e:
-            self.node.get_logger().warn(f"TF lookup failed: {e}")
+            except Exception as e:
+                self.node.get_logger().warn(f"TF lookup failed: {e}")
+                continue
 
     def filter_location(self, transforms):
         positions = []
