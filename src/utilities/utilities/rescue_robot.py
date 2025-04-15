@@ -55,7 +55,7 @@ class RescueRobot:
         )
 
         # Publisher
-        self.pose_publisher = self.create_publisher(
+        self.pose_publisher = self.node.create_publisher(
             PoseStamped,
             '/goal_pose',
             10
