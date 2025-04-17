@@ -24,7 +24,7 @@ class RescueRobot:
         rclpy.init()
         self.node = rclpy.create_node('rescue_robot_main')
         self.node.get_logger().info("RescueRobot initialization started.")
-        super().__init__('rescue_robot_main')
+        
         # Robot state
         self.rescue_mode = False
 
@@ -55,7 +55,7 @@ class RescueRobot:
         )
 
         # Publisher
-        self.pose_publisher = self.create_publisher(
+        self.pose_publisher = self.node.create_publisher(
             PoseStamped,
             '/goal_pose',
             10
@@ -114,7 +114,7 @@ class RescueRobot:
 
         except Exception as e:
             self.node.get_logger().warn(f"TF lookup failed: {e}")
-
+            return None
     def filter_location(self, transforms):
         positions = []
         quaternions = []
