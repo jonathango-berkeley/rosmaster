@@ -274,48 +274,31 @@ class RescueRobot:
     def search_and_rescue(self):
         original_pose = self.original_pose
     
-        # Fetch all checkpoints first
-        checkpoint_index = 1
-        checkpoints = []
-    
+        # Loop through dynamic checkpoints using next_explore_waypoint
         while True:
-            checkpoint = self.get_check_point(checkpoint_index)
+            checkpoint = self.next_explore_waypoint()
             if checkpoint is None:
                 break
-            checkpoints.append(checkpoint)
-            checkpoint_index += 1
     
-        # Treat original point as the final checkpoint
-        checkpoints.append(original_pose)
-    
-        # Visit each checkpoint including original_pose at last
-        for idx, checkpoint in enumerate(checkpoints):
-            self.node.get_logger().info(f"Moving to checkpoint {idx + 1}")
+            self.node.get_logger().info("Moving to next exploration waypoint")
             self.run_robot(checkpoint)
     
-            # Continuously update aruco_queue while moving
             while not self.is_arrived():
                 rclpy.spin_once(self.node, timeout_sec=0.5)
     
-            self.node.get_logger().info(f"Arrived at checkpoint {idx + 1}, checking for objects...")
+            self.node.get_logger().info("Arrived at waypoint, checking for objects...")
     
-            # Rescue detected objects at current checkpoint
             for marker_id, data in list(self.aruco_queue.items()):
-                if marker_id in self.aruco_saved:
-                    continue
     
                 found_location = data["found_location"]
                 target_location = data["location"]
     
-                # Navigate to found_location
                 self.run_robot(found_location)
                 while not self.is_arrived():
                     rclpy.spin_once(self.node, timeout_sec=0.5)
     
-                # Activate magnet before grabbing object
                 self.switch_magnet(True)
     
-                # Navigate to target_location to pick object
                 self.run_robot(target_location)
                 while not self.is_arrived():
                     rclpy.spin_once(self.node, timeout_sec=0.5)
@@ -323,21 +306,21 @@ class RescueRobot:
                 self.node.get_logger().info("Waiting 3 seconds to grab object")
                 rclpy.sleep(3.0)
     
-                # Return back to found_location
                 self.run_robot(found_location)
                 while not self.is_arrived():
                     rclpy.spin_once(self.node, timeout_sec=0.5)
     
-                # Deactivate magnet after grabbing
-                self.switch_magnet(False)
+                # Return to original point to deactivate magnet
+                self.run_robot(original_pose)
+                while not self.is_arrived():
+                    rclpy.spin_once(self.node, timeout_sec=0.5)
     
-                # Mark as completed
+                self.switch_magnet(False)
                 self.remove_object(marker_id)
     
-            # Short spin at each checkpoint to confirm no missed detections
-            self.node.get_logger().info("Brief final check at checkpoint for any survivors")
             rclpy.spin_once(self.node, timeout_sec=1.0)
     
+        self.node.get_logger().info("Rescue mission completed.")
         self.node.get_logger().info("Rescue mission completed.")
 
     
