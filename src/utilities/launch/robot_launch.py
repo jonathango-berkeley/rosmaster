@@ -24,6 +24,14 @@ def generate_launch_description():
         )
     )
 
+    trajectory_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('trajectory_planner'), 'launch', 'trajectory_launch.py'
+            )
+        )
+    )
+
     # Configuration for nav2_bringup
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
     map_yaml_path = LaunchConfiguration(
@@ -160,6 +168,7 @@ def generate_launch_description():
     # Combine everything into a single launch description
     return LaunchDescription([
         sensor_launch,
+        trajectory_launch,
 
         cartographer_ms200_scan_node,
 
