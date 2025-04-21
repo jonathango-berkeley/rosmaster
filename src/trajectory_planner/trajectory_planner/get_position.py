@@ -30,7 +30,7 @@ class MapToOdomPublisher(Node):
             transform = self.tf_buffer.lookup_transform('map', 'odom', now)
 
             self.publisher.publish(transform)
-            self.get_logger().info(f"Published map -> odom: {transform.transform.translation}")
+            # self.get_logger().info(f"Published map -> odom: {transform.transform.translation}")
 
         except Exception as e:
             self.get_logger().warn(f"Could not lookup transform from map to odom: {e}")
