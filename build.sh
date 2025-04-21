@@ -3,9 +3,6 @@
 # Exit immediately if any command fails
 set -e
 
-# Print each command (optional, for debugging)
-set -x
-
 # Step 1: Pull the latest changes
 git pull
 
