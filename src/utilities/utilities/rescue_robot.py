@@ -211,6 +211,8 @@ def main():
     robot = RescueRobot()
 
     while True:
+        print('wait for aruco_detection')
+        print(robot.aruco_queue)
         if robot.aruco_queue:
             for key in robot.aruco_queue:
                 robot.run_robot(robot.aruco_queue[key]['location'])
