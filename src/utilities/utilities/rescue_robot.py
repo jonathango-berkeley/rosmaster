@@ -74,6 +74,8 @@ class RescueRobot:
             if self.current_position:
                 self.origin = self.current_position
                 break
+            else:
+                self.node.get_logger().warning("waiting for origin")
 
         # Setup Magnet
         self.PIN = 32
@@ -209,6 +211,7 @@ def main():
     robot = RescueRobot()
 
     while True:
+        print('wait for aruco_detection')
         if robot.aruco_queue:
             for key in robot.aruco_queue:
                 robot.run_robot(robot.aruco_queue[key]['location'])
@@ -221,6 +224,8 @@ def main():
             input('wait(2)')
 
             return
+
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()
