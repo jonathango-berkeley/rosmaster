@@ -18,7 +18,7 @@ class MapToOdomPublisher(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
         # Publisher (can also use a broadcaster if desired)
-        self.publisher = self.create_publisher(TransformStamped, '/current_location', 10)
+        self.publisher = self.create_publisher(TransformStamped, '/current_position', 10)
 
         # Timer to publish regularly
         self.timer = self.create_timer(0.1, self.publish_transform)  # 10 Hz

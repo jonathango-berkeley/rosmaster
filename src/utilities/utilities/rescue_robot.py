@@ -53,7 +53,7 @@ class RescueRobot:
 
         self.pos_sub = self.node.create_subscription(
             TransformStamped,
-            '/get_position',
+            '/current_position',
             self.pos_callback,
             10
         )
