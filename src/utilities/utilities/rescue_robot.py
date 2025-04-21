@@ -172,7 +172,7 @@ class RescueRobot:
         pose_msg.pose.orientation.w = pose.transform.rotation.w
 
         self.pose_publisher.publish(pose_msg)
-        self.get_logger().info("Published PoseStamped to /goal_pose")
+        self.node.get_logger().info("Published PoseStamped to /goal_pose")
 
     def switch_magnet(self, state):
         if state:
