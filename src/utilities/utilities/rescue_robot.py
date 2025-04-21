@@ -13,6 +13,7 @@ from nav_msgs.msg import OccupancyGrid
 import sys
 import signal
 import Hobot.GPIO as GPIO
+import threading
 
 import math
 import time
@@ -29,15 +30,7 @@ class RescueRobot:
         # Robot state
         self.rescue_mode = False
 
-        # TF buffer
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self.node)
-
-        # Map
-        self.map_data = None
-        self.map_received = False  # <- log-once flag
-
-        # Aruco Data
+        # Subscriptions
         self.aruco_sub = self.node.create_subscription(
             TransformStamped,
             '/aruco/transform',
@@ -47,7 +40,7 @@ class RescueRobot:
         self.aruco_queue = {}
         self.aruco_saved = []
 
-        # Subscriptions
+        
         self.map_sub = self.node.create_subscription(
             OccupancyGrid,
             '/map',
@@ -55,12 +48,27 @@ class RescueRobot:
             10
         )
 
+        self.map_data = None
+        self.map_received = False  # <- log-once flag
+
+        self.pos_sub = self.node.create_subscription(
+            TransformStamped,
+            '/get_position',
+            self.pos_callback,
+            10
+        )
+
+        self.current_position = None
+
         # Publisher
         self.pose_publisher = self.node.create_publisher(
             PoseStamped,
             '/goal_pose',
             10
         )
+
+        self.spin_thread = threading.Thread(target=rclpy.spin, args=(self.node,), daemon=True)
+        self.spin_thread.start()
 
         # Setup Magnet
         self.PIN = 32
@@ -80,7 +88,7 @@ class RescueRobot:
         if msg.child_frame_id in self.aruco_saved:
             return
 
-        found_location = self.get_position()
+        found_location = self.get_current_position()
         if msg.child_frame_id in self.aruco_queue.keys:
             self.aruco_queue[msg.child_frame_id]["found_location"] = found_location
             if len(self.aruco_queue[msg.child_frame_id]["last_10"]) > 10:
@@ -102,20 +110,14 @@ class RescueRobot:
         except KeyError:
             self.node.get_logger().error(f"Key {child_frame_id} not found")
 
-    def get_position(self):
-        while True:
-            now = rclpy.time.Time()
-            transform = self.tf_buffer.lookup_transform(
-                'map',         # target_frame
-                'base_link',   # source_frame
-                now)  # latest available
-            if transform:
-                return transform
-            else:
-                self.node.get_logger().warning(f"could not get loc, trying again")
-
-            time.sleep(1)
-        
+    def pos_callback(self, msg):
+        self.current_position = msg
+    
+    def get_current_position(self):
+        if self.current_position is None:
+            self.node.get_logger().warn("Current position not yet received.")
+            return None
+        return self.current_position
 
     def filter_location(self, transforms):
         positions = []
@@ -180,80 +182,7 @@ class RescueRobot:
         pass
 
     def search_and_rescue(self):
-        # Step 1: Record original point
-        original_pose = self.get_position()
-    
-        # Assume checkpoints are ordered and can be fetched like this:
-        checkpoint_index = 1
-        checkpoints = []
-    
-        while True:
-            # Step 2: Get checkpoint i
-            checkpoint = self.get_check_point(checkpoint_index)
-            if checkpoint is None:
-                break
-    
-            checkpoints.append(checkpoint)
-    
-            # Step 3: Go to checkpoint i
-            self.run_robot(checkpoint)
-            self.is_arrived()
-    
-            # Step 4: Detect objects (assume aruco_callback is running in the background)
-            self.node.get_logger().info(f"Detecting objects at checkpoint {checkpoint_index}")
-            rclpy.spin_once(self.node, timeout_sec=3.0)  # allow callback to populate aruco_queue
-    
-            # Step 5: Rescue all detected objects at this checkpoint
-            for marker_id, data in list(self.aruco_queue.items()):
-                if marker_id in self.aruco_saved:
-                    continue
-    
-                found_location = data["found_location"]
-                target_location = data["location"]
-    
-                # Go to found location
-                self.run_robot(found_location)
-                self.is_arrived()
-    
-                # Activate magnet before going to grab the object
-                self.switch_magnet(True)
-    
-                # Go to target pose (where the object is)
-                self.run_robot(target_location)
-                self.is_arrived()
-                self.node.get_logger().info("Waiting 3 seconds to grab object")
-                rclpy.sleep(3.0)
-    
-                # Return to found location
-                self.run_robot(found_location)
-                self.is_arrived()
-    
-                # Return through checkpoints to original
-                for cp in reversed(checkpoints[:checkpoint_index]):
-                    self.run_robot(cp)
-                    self.is_arrived()
-    
-                # Return to original point
-                self.run_robot(original_pose)
-                self.is_arrived()
-    
-                # Deactivate magnet
-                self.switch_magnet(False)
-    
-                # Mark as saved
-                self.remove_object(marker_id)
-    
-            checkpoint_index += 1
-    
-        # Step 6: After all checkpoints are visited and objects rescued, return to original point
-        for cp in reversed(checkpoints):
-            self.run_robot(cp)
-            self.is_arrived()
-    
-        self.run_robot(original_pose)
-        self.is_arrived()
-        self.node.get_logger().info("Rescue mission completed.")
-    
+        pass
 
     def spin(self):
         self.node.get_logger().info("Robot is running...")
@@ -273,7 +202,6 @@ class RescueRobot:
 def main():
     signal.signal(signal.SIGINT, clean_exit)
     robot = RescueRobot()
-    robot.spin()
 
 if __name__ == '__main__':
     main()
