@@ -31,15 +31,18 @@ class RescueRobot:
         self.rescue_mode = False
 
         # Subscriptions
+        self.aruco_queue = {}
+        self.aruco_saved = []
+
         self.aruco_sub = self.node.create_subscription(
             TransformStamped,
             '/aruco/transform',
             self.aruco_callback,
             10
         )
-        self.aruco_queue = {}
-        self.aruco_saved = []
 
+        self.map_data = None
+        self.map_received = False
         
         self.map_sub = self.node.create_subscription(
             OccupancyGrid,
@@ -48,8 +51,7 @@ class RescueRobot:
             10
         )
 
-        self.map_data = None
-        self.map_received = False  # <- log-once flag
+        self.current_position = None
 
         self.pos_sub = self.node.create_subscription(
             TransformStamped,
@@ -57,8 +59,6 @@ class RescueRobot:
             self.pos_callback,
             10
         )
-
-        self.current_position = None
 
         # Publisher
         self.pose_publisher = self.node.create_publisher(
@@ -69,6 +69,11 @@ class RescueRobot:
 
         self.spin_thread = threading.Thread(target=rclpy.spin, args=(self.node,), daemon=True)
         self.spin_thread.start()
+
+        while True:
+            if self.current_position:
+                self.origin = self.current_position
+                break
 
         # Setup Magnet
         self.PIN = 32
@@ -204,20 +209,18 @@ def main():
     robot = RescueRobot()
 
     while True:
-        if robot.current_position is not None:
-            print(f"current position: {robot.current_position.transform.translation}")
-        else:
-            print("no position found")
-
-        try:
-            print("----- aruco queue ------")
+        if robot.aruco_queue:
             for key in robot.aruco_queue:
-                loc = robot.aruco_queue[key]["location"]
-                print(f"{key} location: {loc.transform.translation}")
-        except Exception as e:
-            print(f"error: {e}")
+                robot.run_robot(robot.aruco_queue[key]['location'])
+                break
 
-        time.sleep(1)
+            input("wait")
+
+            robot.run_robot(robot.origin)
+            
+            input('wait(2)')
+
+            return
 
 if __name__ == '__main__':
     main()
