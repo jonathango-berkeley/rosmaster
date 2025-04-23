@@ -12,13 +12,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'r
 import a_star_Gutsav_v4 as a_star
 
 #gobal parameters
-waypoints = {
-    "base": [0.0, 0.0],
-    "A": [0.0, 1.5239],
-    "B": [1.5239, 1.5239],
-    "C": [1.5239, 0.0],
-    "D": [0.762, 0.762]
-}
+waypoints = [
+    [0.0, 0.0],
+    [0.0, 1.5239],
+    [1.5239, 1.5239],
+    [1.5239, 0.0],
+    [0.762, 0.762]
+    ]
 num_interm_wayp = 2    #total number of intermediate waypoints
 
 class ExploreHard(Node):
