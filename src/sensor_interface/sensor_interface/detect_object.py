@@ -40,12 +40,7 @@ class ArucoDetector(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-
         
-        self.T_opencv_to_ros = R.from_quat([0.5, -0.5, -0.5, 0.5])
-        
-
-
         # Correct rotation from OpenCV to ROS REP-103
         self.T_opencv_to_ros = R.from_quat([0.5, -0.5, -0.5, 0.5])
 
