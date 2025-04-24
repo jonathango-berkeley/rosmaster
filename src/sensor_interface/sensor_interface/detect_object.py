@@ -40,9 +40,16 @@ class ArucoDetector(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+
         
         self.T_opencv_to_ros = R.from_quat([0.5, -0.5, -0.5, 0.5])
         
+
+
+        # Correct rotation from OpenCV to ROS REP-103
+        self.T_opencv_to_ros = R.from_quat([0.5, -0.5, -0.5, 0.5])
+
+
     def listener_callback(self, msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -63,12 +70,23 @@ class ArucoDetector(Node):
                     rvec = rvecs[i]
                     tvec = tvecs[i]
 
+                    # Convert OpenCV rotation to quaternion in ROS frame
                     rmat, _ = cv2.Rodrigues(rvec)
                     r_opencv = R.from_matrix(rmat)
+
                     r_ros = T_opencv_to_ros * r_opencv
                     quat = r_ros.as_quat()
                     
                     tvec_ros = self.T_opencv_to_ros.apply(tvec[0])
+
+
+                    r_ros = self.T_opencv_to_ros * r_opencv
+                    quat = r_ros.as_quat()
+
+                    # Rotate translation vector to ROS camera frame
+                    tvec_ros = self.T_opencv_to_ros.apply(tvec[0])
+
+                    # Create TransformStamped message
 
                     transform_msg = TransformStamped()
                     transform_msg.header.stamp = self.get_clock().now().to_msg()
