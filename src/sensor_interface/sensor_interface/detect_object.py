@@ -40,7 +40,9 @@ class ArucoDetector(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-
+        
+        self.T_opencv_to_ros = R.from_quat([0.5, -0.5, -0.5, 0.5])
+        
     def listener_callback(self, msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -62,16 +64,19 @@ class ArucoDetector(Node):
                     tvec = tvecs[i]
 
                     rmat, _ = cv2.Rodrigues(rvec)
-                    quat = R.from_matrix(rmat).as_quat()
+                    r_opencv = R.from_matrix(rmat)
+                    r_ros = T_opencv_to_ros * r_opencv
+                    quat = r_ros.as_quat()
+                    
+                    tvec_ros = self.T_opencv_to_ros.apply(tvec[0])
 
-                    # Step 1: Publish camera_link → aruco_marker_<id>
                     transform_msg = TransformStamped()
                     transform_msg.header.stamp = self.get_clock().now().to_msg()
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
-                    transform_msg.transform.translation.x = float(tvec[0][2])
-                    transform_msg.transform.translation.y = float(-tvec[0][1]-0.3)
-                    transform_msg.transform.translation.z = float(0.0)
+                    transform_msg.transform.translation.x = float(tvec_ros[0])
+                    transform_msg.transform.translation.y = float(tvec_ros[1])
+                    transform_msg.transform.translation.z = float(tvec_ros[2])
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])
                     transform_msg.transform.rotation.z = float(quat[2])
@@ -79,7 +84,6 @@ class ArucoDetector(Node):
 
                     self.transform_pub.publish(transform_msg)
                     self.tf_broadcaster.sendTransform(transform_msg)
-
                     self.get_logger().info(f"Published camera_link → aruco_marker_{ids[i][0]}")
 
         except Exception as e:
@@ -99,4 +103,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-    
