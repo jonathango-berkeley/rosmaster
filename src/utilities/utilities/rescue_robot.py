@@ -176,6 +176,18 @@ class RescueRobot:
         self.pose_publisher.publish(pose_msg)
         self.node.get_logger().info("Published PoseStamped to /goal_pose")
 
+        self.goal_pose = pose
+
+        while not self.is_arrived:
+            current_position = self.get_current_position()
+            self.node.get_logger().info(f"Going to [{pose_msg.pose.position.x}, {pose_msg.pose.position.y}]")
+            self.node.get_logger().info(
+                f"Currently at [{current_position.transform.translation.x}, {current_position.transform.translation.y}]"
+                )
+            time.sleep(1)
+        
+        return
+
     def switch_magnet(self, state):
         if state:
             GPIO.output(self.PIN, GPIO.HIGH)
