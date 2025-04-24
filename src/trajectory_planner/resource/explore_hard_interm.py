@@ -91,12 +91,12 @@ class ExploreHard(Node):
 
         self.waypoint_coords = self.interm_wayp[self.count_interm_wayp]
         
-        pub_msg = TransformStamped()
+        pub_msg = PoseStamped()
         pub_msg.header.stamp = self.get_clock().now().to_msg()
         pub_msg.header.frame_id = "map"
          
-        pub_msg.transform.translation.x = self.waypoint_coords[0]
-        pub_msg.transform.translation.y = self.waypoint_coords[1]
+        pub_msg.pose.position.x = self.waypoint_coords[0]
+        pub_msg.pose.position.y = self.waypoint_coords[1]
             
         #calculate orientation (facing towards the center)
         if self.waypoint_coords != self.waypoints[4]:
@@ -107,8 +107,8 @@ class ExploreHard(Node):
             dy = self.waypoints[0][1] - self.waypoint_coords[1]
         theta = math.atan2(dy, dx)
 
-        pub_msg.transform.rotation.z = math.sin(theta / 2.0)  #orientation?
-        pub_msg.transform.rotation.w = math.cos(theta / 2.0)  #orientation?
+        pub_msg.pose.orientation.z = math.sin(theta / 2.0)  #orientation?
+        pub_msg.pose.orientation.w = math.cos(theta / 2.0)  #orientation?
             
         #publish
         self.publisher.publish(pub_msg)
