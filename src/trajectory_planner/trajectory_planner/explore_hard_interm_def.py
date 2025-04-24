@@ -20,7 +20,7 @@ num_interm_wayp = 2    #total number of intermediate waypoints (needs tuning)
         #####
         #add this to the __init__
         self.prev_waypoint = None    #previous waypoint
-        self.curr_waypoint = None    #current waypoint
+        self.waypoint_coords = None    #coordinates of the waypoint we currently want to move to
         self.goal_waypoint = None    #goal waypoint
         self.count_interm_wayp = 0    #count of intermediate waypoint
         self.interm_wayp = []    #list of intermediate waypoints
