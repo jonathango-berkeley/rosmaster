@@ -13,8 +13,10 @@ from nav_msgs.msg import OccupancyGrid
 import sys
 import signal
 import Hobot.GPIO as GPIO
-import time
+import threading
+
 import math
+import time
 
 def clean_exit(signal, frame):
     sys.exit(0)
@@ -28,15 +30,7 @@ class RescueRobot:
         # Robot state
         self.rescue_mode = False
 
-        # TF buffer
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self.node)
-
-        # Map
-        self.map_data = None
-        self.map_received = False  # <- log-once flag
-
-        # Aruco Data
+        # Subscriptions
         self.aruco_sub = self.node.create_subscription(
             TransformStamped,
             '/aruco/transform',
@@ -46,13 +40,25 @@ class RescueRobot:
         self.aruco_queue = {}
         self.aruco_saved = []
 
-        # Subscriptions
+        
         self.map_sub = self.node.create_subscription(
             OccupancyGrid,
             '/map',
             self.map_callback,
             10
         )
+
+        self.map_data = None
+        self.map_received = False  # <- log-once flag
+
+        self.pos_sub = self.node.create_subscription(
+            TransformStamped,
+            '/current_position',
+            self.pos_callback,
+            10
+        )
+
+        self.current_position = None
 
         # Publisher
         self.pose_publisher = self.node.create_publisher(
@@ -61,8 +67,10 @@ class RescueRobot:
             10
         )
 
-        # HZ Store the goal pose
-        self.goal_pose = None
+        self.spin_thread = threading.Thread(target=rclpy.spin, args=(self.node,), daemon=True)
+        self.spin_thread.start()
+
+
         # Setup Magnet
         self.PIN = 32
         GPIO.setwarnings(False)
@@ -81,8 +89,8 @@ class RescueRobot:
         if msg.child_frame_id in self.aruco_saved:
             return
 
-        found_location = self.get_position()
-        if msg.child_frame_id in self.aruco_queue.keys:
+        found_location = self.get_current_position()
+        if msg.child_frame_id in self.aruco_queue:
             self.aruco_queue[msg.child_frame_id]["found_location"] = found_location
             if len(self.aruco_queue[msg.child_frame_id]["last_10"]) > 10:
                 self.aruco_queue[msg.child_frame_id]["last_10"].pop(0)
@@ -103,18 +111,16 @@ class RescueRobot:
         except KeyError:
             self.node.get_logger().error(f"Key {child_frame_id} not found")
 
-    def get_position(self):
-        try:
-            now = rclpy.time.Time()
-            trans: TransformStamped = self.tf_buffer.lookup_transform(
-                "map", 'base_link', now, timeout=rclpy.duration.Duration(seconds=1.0)
-            )
-
-            return trans
-
-        except Exception as e:
-            self.node.get_logger().warn(f"TF lookup failed: {e}")
+    def pos_callback(self, msg):
+        self.current_position = msg
+    
+    def get_current_position(self):
+        if self.current_position is None:
+            self.node.get_logger().warn("Current position not yet received.")
             return None
+        return self.current_position
+
+
     def filter_location(self, transforms):
         positions = []
         quaternions = []
@@ -292,7 +298,22 @@ class RescueRobot:
 def main():
     signal.signal(signal.SIGINT, clean_exit)
     robot = RescueRobot()
-    robot.spin()
+
+    while True:
+        if robot.current_position is not None:
+            print(f"current position: {robot.current_position.transform.translation}")
+        else:
+            print("no position found")
+
+        try:
+            print("----- aruco queue ------")
+            for key in robot.aruco_queue:
+                loc = robot.aruco_queue[key]["location"]
+                print(f"{key} location: {loc.transform.translation}")
+        except Exception as e:
+            print(f"error: {e}")
+
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()
