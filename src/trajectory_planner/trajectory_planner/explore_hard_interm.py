@@ -48,7 +48,7 @@ class ExploreHard(Node):
         if self.goal_waypoint is None:
             self.prev_waypoint = 0
             self.goal_waypoint = 1
-        elif waypoints[self.goal_waypoint] != self.curr_waypoint:
+        elif waypoints[self.goal_waypoint] != self.waypoint_coords:
             self.count_interm_wayp += 1
         else:
             if self.goal_waypoint == 0:
@@ -90,23 +90,23 @@ class ExploreHard(Node):
                 self.interm_wayp.append([waypoints_map[i].y * res, waypoints_map[i].x * res])
                 
             self.interm_wayp.append(waypoints[self.goal_waypoint])
-            self.curr_waypoint = self.interm_wayp[self.count_interm_wayp]
+            self.waypoint_coords = self.interm_wayp[self.count_interm_wayp]
         else:
-            self.curr_waypoint = self.interm_wayp[self.count_interm_wayp]
+            self.waypoint_coords = self.interm_wayp[self.count_interm_wayp]
         pub_msg = PoseStamped()
         pub_msg.header.stamp = self.get_clock().now().to_msg()
         pub_msg.header.frame_id = "map"
          
-        pub_msg.pose.position.x = float(self.curr_waypoint[0])
-        pub_msg.pose.position.y = float(self.curr_waypoint[1])
+        pub_msg.pose.position.x = float(self.waypoint_coords[0])
+        pub_msg.pose.position.y = float(self.waypoint_coords[1])
             
         #calculate orientation (facing towards the center)
-        if self.curr_waypoint != waypoints[4]:
-            dx = waypoints[4][0] - self.curr_waypoint[0]
-            dy = waypoints[4][1] - self.curr_waypoint[1]
+        if self.waypoint_coords != waypoints[4]:
+            dx = waypoints[4][0] - self.waypoint_coords[0]
+            dy = waypoints[4][1] - self.waypoint_coords[1]
         else:
-            dx = waypoints[0][0] - self.curr_waypoint[0]
-            dy = waypoints[0][1] - self.curr_waypoint[1]
+            dx = waypoints[0][0] - self.waypoint_coords[0]
+            dy = waypoints[0][1] - self.waypoint_coords[1]
         theta = math.atan2(dy, dx)
 
         pub_msg.pose.orientation.z = math.sin(theta / 2.0)  #orientation?
@@ -114,7 +114,7 @@ class ExploreHard(Node):
             
         #publish
         self.publisher.publish(pub_msg)
-        self.get_logger().info(f'Published new waypoint: {self.curr_waypoint}')    
+        self.get_logger().info(f'Published new waypoint: {self.waypoint_coords}')    
         
     def map_callback(self, map_msg):
         self.get_logger().info("Received a map message.")
