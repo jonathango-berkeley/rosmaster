@@ -33,13 +33,21 @@ class ArucoDetector(Node):
         self.parameters = aruco.DetectorParameters()
         self.marker_length = 0.032  # meters
 
-        self.camera_matrix = np.array([[526, 0, 320],
-                                       [0, 526, 240],
+        self.camera_matrix = np.array([[2640.2, 0, 1640],
+                                       [0, 2640.2, 1232],
                                        [0, 0, 1]], dtype=np.float64)
         self.dist_coeffs = np.zeros((5, 1), dtype=np.float64)
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+
+        # --- Define the composed OpenCV->ROS transformation ---
+        T_opencv_to_ros_base = R.from_quat([0.5, -0.5, 0.5, -0.5])
+
+        # Correct R_flip_xz to properly align OpenCV marker axes to ROS frame
+        R_flip_xz = R.from_euler('xyz', [-90,90,0], degrees=True)
+
+        self.T_opencv_to_ros = R_flip_xz * T_opencv_to_ros_base
 
     def listener_callback(self, msg):
         try:
@@ -61,20 +69,24 @@ class ArucoDetector(Node):
                     rvec = rvecs[i]
                     tvec = tvecs[i]
 
-                    # Convert rotation to matrix and adjust from OpenCV to ROS camera frame
+                    # Convert rotation to matrix
                     rmat, _ = cv2.Rodrigues(rvec)
                     r_opencv = R.from_matrix(rmat)
-                    T_opencv_to_ros = R.from_quat([0.5, -0.5, 0.5, -0.5])
-                    r_ros = T_opencv_to_ros * r_opencv
+
+                    # Apply composed transformation
+                    r_ros = self.T_opencv_to_ros * r_opencv
                     quat = r_ros.as_quat()
+
+                    # Rotate translation vector as well
+                    tvec_rotated = self.T_opencv_to_ros.apply(tvec.reshape(1, 3))[0]
 
                     transform_msg = TransformStamped()
                     transform_msg.header.stamp = self.get_clock().now().to_msg()
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
-                    transform_msg.transform.translation.x = float(tvec[0][0])
-                    transform_msg.transform.translation.y = float(tvec[0][1])
-                    transform_msg.transform.translation.z = float(tvec[0][2])
+                    transform_msg.transform.translation.x = float(tvec_rotated[0])
+                    transform_msg.transform.translation.y = float(tvec_rotated[1])
+                    transform_msg.transform.translation.z = float(tvec_rotated[2])
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])
                     transform_msg.transform.rotation.z = float(quat[2])
