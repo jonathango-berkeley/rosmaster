@@ -41,14 +41,6 @@ class ArucoDetector(Node):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
-        # --- Define the composed OpenCV->ROS transformation ---
-        T_opencv_to_ros_base = R.from_quat([0.5, -0.5, 0.5, -0.5])
-
-        # Correct R_flip_xz to properly align OpenCV marker axes to ROS frame
-        R_flip_xz = R.from_euler('xyz', [-90,90,0], degrees=True)
-
-        self.T_opencv_to_ros = R_flip_xz * T_opencv_to_ros_base
-
     def listener_callback(self, msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -69,24 +61,26 @@ class ArucoDetector(Node):
                     rvec = rvecs[i]
                     tvec = tvecs[i]
 
-                    # Convert rotation to matrix
+                    # Convert rotation to matrix and adjust from OpenCV to ROS camera frame
                     rmat, _ = cv2.Rodrigues(rvec)
                     r_opencv = R.from_matrix(rmat)
+                    T_opencv_to_ros_base = R.from_quat([0.5, -0.5, 0.5, -0.5])
+                    R_flip_xz = R.from_euler('xyz', [-90,90,0], degrees=True)
 
-                    # Apply composed transformation
-                    r_ros = self.T_opencv_to_ros * r_opencv
+                    T_opencv_to_ros = R_flip_xz * T_opencv_to_ros_base
+
+                    r_ros = T_opencv_to_ros * r_opencv
                     quat = r_ros.as_quat()
 
-                    # Rotate translation vector as well
-                    tvec_rotated = self.T_opencv_to_ros.apply(tvec.reshape(1, 3))[0]
+                    tvec_rotated = T_opencv_to_ros.apply(tvec[0])
 
                     transform_msg = TransformStamped()
                     transform_msg.header.stamp = self.get_clock().now().to_msg()
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
-                    transform_msg.transform.translation.x = float(tvec_rotated[0])
-                    transform_msg.transform.translation.y = float(tvec_rotated[1])
-                    transform_msg.transform.translation.z = float(tvec_rotated[2])
+                    transform_msg.transform.translation.x = float(-tvec_rotated[2]) # Corrected X
+                    transform_msg.transform.translation.y = float(tvec_rotated[1] - 0.136) # There is an offset of Y
+                    transform_msg.transform.translation.z = float(0.09) # Keep constant but not 0.0
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])
                     transform_msg.transform.rotation.z = float(quat[2])
@@ -114,4 +108,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
