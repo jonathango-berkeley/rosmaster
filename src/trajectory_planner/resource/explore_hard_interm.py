@@ -87,7 +87,7 @@ class ExploreHard(Node):
                 
             #extracting cell coordinates and transform back to real world coordinates
             for i in range(len(waypoints_map)):
-                self.interm_wayp.append(([waypoints_map[i].y * res)+oriy, (waypoints_map[i].x * res])+orix)
+                self.interm_wayp.append(([waypoints_map[i].y * res)+oriy, (waypoints_map[i].x * res)+orix])
                 
             self.interm_wayp.append(self.waypoints[self.goal_waypoint])
 
