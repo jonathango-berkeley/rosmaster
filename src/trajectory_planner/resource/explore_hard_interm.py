@@ -71,10 +71,10 @@ class ExploreHard(Node):
             res = self.map_data.info.resolution
             orix = self.map_data.info.origin.position.x
             oriy = self.map_data.info.origin.position.y
-            goal_x = int((self.waypoints[self.goal_waypoint][0]-orix)/res)
-            goal_y = int((self.waypoints[self.goal_waypoint][1]+oriy)/res)
-            prev_x = int((self.waypoints[self.prev_waypoint][0]-orix)/res)
-            prev_y = int((self.waypoints[self.prev_waypoint][1]+oriy)/res)
+            goal_x = int((self.waypoints[self.goal_waypoint][0]+orix)/res)
+            goal_y = int((self.waypoints[self.goal_waypoint][1]-oriy)/res)
+            prev_x = int((self.waypoints[self.prev_waypoint][0]+orix)/res)
+            prev_y = int((self.waypoints[self.prev_waypoint][1]-oriy)/res)
             
             #plan path
             #a_star.plot(self.map_data, [prev_x, prev_y], [goal_x, goal_y])
@@ -87,7 +87,7 @@ class ExploreHard(Node):
                 
             #extracting cell coordinates and transform back to real world coordinates
             for i in range(len(waypoints_map)):
-                self.interm_wayp.append([(waypoints_map[i].y * res)-oriy, (waypoints_map[i].x * res)+orix])
+                self.interm_wayp.append([(waypoints_map[i].y * res)+oriy, (waypoints_map[i].x * res)-orix])
                 
             self.interm_wayp.append(self.waypoints[self.goal_waypoint])
 
