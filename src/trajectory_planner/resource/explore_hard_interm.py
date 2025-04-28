@@ -24,10 +24,10 @@ class ExploreHard(Node):
         
         self.waypoints = [
             [0.0, 0.0],
-            [0.0, 1.5239],
-            [1.5239, 1.5239],
             [1.5239, 0.0],
-            [0.762, 0.762]
+            [1.5239, -1.5239],
+            [0.0, -1.5239],
+            [0.762, -0.762]
         ]
         self.num_interm_wayp = 2    #total number of intermediate waypoints (needs tuning)
         self.prev_waypoint = 0    #previous waypoint list position
