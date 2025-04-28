@@ -231,8 +231,8 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
             if nei_node in examined_nodes or nei_node.type > 50:    #do not examine node that are already examined or occupied
                 continue
 
-            adj_node_1 = grid[curr.y][nei_node.x]
-            adj_node_2 = grid[nei_node.y][curr.x]
+            adj_node_1 = grid[nei_node.x][curr.y]
+            adj_node_2 = grid[curr.x][nei_node.y]
             if adj_node_1.type > 50 and adj_node_2.type > 50:    #do not examine diagonal neighbor node if both adjacent neighbor nodes are occupied
                 continue
 
