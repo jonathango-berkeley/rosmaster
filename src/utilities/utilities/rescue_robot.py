@@ -298,21 +298,20 @@ class RescueRobot:
 def main():
     signal.signal(signal.SIGINT, clean_exit)
     robot = RescueRobot()
+    
+    initial_position = robot.get_current_position()
+
+    input("move robot to a different location through rviz and hit enter!")
+
+    robot.run_robot(initial_position)
 
     while True:
-        if robot.current_position is not None:
-            print(f"current position: {robot.current_position.transform.translation}")
+        if robot.is_arrived():
+            print("Robot is Arrived")
+            break
         else:
-            print("no position found")
-
-        try:
-            print("----- aruco queue ------")
-            for key in robot.aruco_queue:
-                loc = robot.aruco_queue[key]["location"]
-                print(f"{key} location: {loc.transform.translation}")
-        except Exception as e:
-            print(f"error: {e}")
-
+            print("Robot not Arrived")
+        
         time.sleep(1)
 
 if __name__ == '__main__':
