@@ -11,7 +11,7 @@ buffer = 5    #size of buffer zone
 #########################################################
 
 class Node:
-    def __init__(self, x, y):
+    def __init__(self, y, x):
         self.x = x
         self.y = y
         self.type = 100    #types: 0-100 [int] (from occupancy grid)
