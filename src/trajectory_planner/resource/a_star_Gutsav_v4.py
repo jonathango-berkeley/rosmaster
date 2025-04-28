@@ -69,7 +69,7 @@ def get_nei(grid, curr):
         nei_y = curr.y + direc_j[0]
 
         if nei_x >= 0 and nei_y >= 0 and nei_x < columns and nei_y < rows:    #adds neighbor for every direction if in domain
-            nei_nodes.append(grid[nei_x][nei_y])
+            nei_nodes.append(grid[nei_y][nei_x])
 
     return nei_nodes
 
