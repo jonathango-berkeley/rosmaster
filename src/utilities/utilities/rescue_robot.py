@@ -90,10 +90,10 @@ class RescueRobot:
         # For exploration
         self.waypoints = [
             [0.0, 0.0],
-            [0.0, 1.5239],
-            [1.5239, 1.5239],
             [1.5239, 0.0],
-            [0.762, 0.762]
+            [1.5239, -1.5239],
+            [0.0, -1.5239],
+            [0.762, -0.762]
         ]
         self.num_interm_wayp = 2    #total number of intermediate waypoints (needs tuning)
         self.prev_waypoint = 0    #previous waypoint list position
@@ -334,10 +334,12 @@ class RescueRobot:
             
             #transform goal_waypoint and prev_waypoint into map coordinates (cells)
             res = self.map_data.info.resolution
-            goal_x = int(self.waypoints[self.goal_waypoint][0]/res)
-            goal_y = int(self.waypoints[self.goal_waypoint][1]/res)
-            prev_x = int(self.waypoints[self.prev_waypoint][0]/res)
-            prev_y = int(self.waypoints[self.prev_waypoint][1]/res)
+            orix = self.map_data.info.origin.position.x
+            oriy = self.map_data.info.origin.position.y
+            goal_x = int((self.waypoints[self.goal_waypoint][0]-orix)/res)
+            goal_y = int((self.waypoints[self.goal_waypoint][1]-oriy)/res)
+            prev_x = int((self.waypoints[self.prev_waypoint][0]-orix)/res)
+            prev_y = int((self.waypoints[self.prev_waypoint][1]-oriy)/res)
             
             #plan path
             #a_star.plot(self.map_data, [prev_x, prev_y], [goal_x, goal_y])
@@ -350,7 +352,7 @@ class RescueRobot:
                 
             #extracting cell coordinates and transform back to real world coordinates
             for i in range(len(waypoints_map)):
-                self.interm_wayp.append([waypoints_map[i].y * res, waypoints_map[i].x * res])
+                self.interm_wayp.append([(waypoints_map[i].y * res)+orix, (waypoints_map[i].x * res)+oriy])
                 
             self.interm_wayp.append(self.waypoints[self.goal_waypoint])
 

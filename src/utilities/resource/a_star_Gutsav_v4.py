@@ -6,7 +6,7 @@ from nav_msgs.msg import OccupancyGrid
 #########################################################
 
 #global parameter
-buffer = 5    #size of buffer zone
+buffer = 0    #size of buffer zone
 
 #########################################################
 
@@ -68,7 +68,7 @@ def get_nei(grid, curr):
         nei_x = curr.x + direc_j[1]
         nei_y = curr.y + direc_j[0]
 
-        if nei_x >= 0 and nei_y >= 0 and nei_x < columns and nei_y < rows:    #adds neighbor for every direction if in domain
+        if nei_x >= 0 and nei_y >= 0 and nei_x < rows and nei_y < columns:    #adds neighbor for every direction if in domain
             nei_nodes.append(grid[nei_x][nei_y])
 
     return nei_nodes
@@ -231,8 +231,8 @@ def a_star(occupancy_grid_msg, start_coor, end_coor):
             if nei_node in examined_nodes or nei_node.type > 50:    #do not examine node that are already examined or occupied
                 continue
 
-            adj_node_1 = grid[curr.y][nei_node.x]
-            adj_node_2 = grid[nei_node.y][curr.x]
+            adj_node_1 = grid[nei_node.x][curr.y]
+            adj_node_2 = grid[curr.x][nei_node.y]
             if adj_node_1.type > 50 and adj_node_2.type > 50:    #do not examine diagonal neighbor node if both adjacent neighbor nodes are occupied
                 continue
 
