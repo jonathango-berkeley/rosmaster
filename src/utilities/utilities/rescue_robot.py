@@ -301,7 +301,6 @@ def main():
     
     initial_position = robot.get_current_position()
 
-    # 关键新增代码：等待直到获取到位置数据
     while initial_position is None:
         robot.node.get_logger().info("Waiting for initial position...")
         time.sleep(0.1)
