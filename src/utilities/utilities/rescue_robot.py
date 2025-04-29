@@ -171,15 +171,15 @@ class RescueRobot:
         self.goal_pose = pose_msg
 
         self.pose_publisher.publish(pose_msg)
-        self.get_logger().info("Published PoseStamped to /goal_pose")
+        self.node.get_logger().info("Published PoseStamped to /goal_pose")
 
     def switch_magnet(self, state):
         if state:
             GPIO.output(self.PIN, GPIO.HIGH)
-            self.get_logger().info("Set Magnet to ON")
+            self.node.get_logger().info("Set Magnet to ON")
         else:
             GPIO.output(self.PIN, GPIO.LOW)
-            self.get_logger().info("Set Magnet to OFF")
+            self.node.get_logger().info("Set Magnet to OFF")
 
 
     def is_arrived(self):
@@ -189,13 +189,13 @@ class RescueRobot:
         stable_orientation_threshold = math.radians(1.0)
         # If the goal pose has not been received yet, return False
         if self.goal_pose is None:
-            self.get_logger().warn("goal pose has not been received")
+            self.node.get_logger().warn("goal pose has not been received")
             return False
     
         # Gets the current robot pose （first time）
         current_tf_1 = self.get_position()
         if current_tf_1 is None:
-            self.get_logger().warn("Failed to get current pose (1st time)")
+            self.node.get_logger().warn("Failed to get current pose (1st time)")
             return False
         
         # Wait 0.5 seconds to allow the robot or localization to stabilize
@@ -204,7 +204,7 @@ class RescueRobot:
         # Get the current robot pose (second time)
         current_tf_2 = self.get_position()
         if current_tf_2 is None:
-            self.get_logger().warn("Failed to get current pose (2nd time)")
+            self.node.get_logger().warn("Failed to get current pose (2nd time)")
             return False
         # Calculate how far the robot has moved between the first and second pose
         dx_move = current_tf_2.transform.translation.x - current_tf_1.transform.translation.x
@@ -212,7 +212,7 @@ class RescueRobot:
         distance_moved = math.sqrt(dx_move**2 + dy_move**2)
         # If the movement in 0.5s exceeds the stable position threshold, the robot is still moving
         if distance_moved > stable_position_threshold:
-            self.get_logger().info(
+            self.node.get_logger().info(
                 f"The robot moved {distance_moved:.3f}m in 0.5s, still moving => not arrived!"
             )
             return False
@@ -237,7 +237,7 @@ class RescueRobot:
         # If the rotation in 0.5s exceeds the stable orientation threshold, the robot is still rotating
         if angle_diff_r1_r2 > stable_orientation_threshold:
             deg_12 = math.degrees(angle_diff_r1_r2)
-            self.get_logger().info(
+            self.node.get_logger().info(
                 f"The robot rotated {deg_12:.2f}° in 0.5 s, still rotating => not arrived!"
             )
             return False
@@ -247,7 +247,7 @@ class RescueRobot:
         distance_to_goal = math.sqrt(dx_goal**2 + dy_goal**2)
         # If the distance to the goal is greater than the threshold, it's not arrived yet
         if distance_to_goal > position_threshold:
-            self.get_logger().info(
+            self.node.get_logger().info(
                 f"Distance to goal: {distance_to_goal:.3f} m, not arrived yet!"
             )
             return False
@@ -266,13 +266,13 @@ class RescueRobot:
         # If the orientation difference to the goal is above the threshold, it's not arrived yet
         if angle_diff_r2_goal > orientation_threshold:
             deg_2g = math.degrees(angle_diff_r2_goal)
-            self.get_logger().info(
+            self.node.get_logger().info(
                 f"Orientation difference to goal: {deg_2g:.2f}°, not arrived yet!"
             )
             return False
 
         # If all checks pass, log success and return True
-        self.get_logger().info("Arrived at target position and orientation.")
+        self.node.get_logger().info("Arrived at target position and orientation.")
         return True
         
        
