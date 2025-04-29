@@ -183,7 +183,7 @@ class RescueRobot:
 
 
     def is_arrived(self):
-        position_threshold = 0.1
+        position_threshold = 0.05
         orientation_threshold = math.radians(5.0)
         stable_position_threshold = 0.01
         stable_orientation_threshold = math.radians(1.0)
