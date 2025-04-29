@@ -193,7 +193,7 @@ class RescueRobot:
             return False
     
         # Gets the current robot pose （first time）
-        current_tf_1 = self.get_position()
+        current_tf_1 = self.get_current_position()
         if current_tf_1 is None:
             self.node.get_logger().warn("Failed to get current pose (1st time)")
             return False
@@ -202,7 +202,7 @@ class RescueRobot:
         time.sleep(0.5)
         
         # Get the current robot pose (second time)
-        current_tf_2 = self.get_position()
+        current_tf_2 = self.get_current_position()
         if current_tf_2 is None:
             self.node.get_logger().warn("Failed to get current pose (2nd time)")
             return False
