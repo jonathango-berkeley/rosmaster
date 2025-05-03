@@ -24,9 +24,9 @@ class ExploreHard(Node):
         
         self.waypoints = [
             [0.0, 0.0],
-            [1.5239, 0.0],
-            [1.5239, -1.5239],
-            [0.0, -1.5239],
+            [1.4, 0.0],
+            [1.4, -1.4],
+            [0.0, -1.4],
             [0.762, -0.762]
         ]
         self.num_interm_wayp = 2    #total number of intermediate waypoints (needs tuning)
