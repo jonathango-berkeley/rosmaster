@@ -115,8 +115,12 @@ class RescueRobot:
 
             self.get_logger().info(f"Published map -> odom: {self.current_position.transform.translation}")
 
+            return self.current_position
+
         except Exception as e:
             self.get_logger().warn(f"Could not lookup transform from map to odom: {e}")
+
+            return None
 
     def filter_location(self, transforms):
         positions = []
@@ -205,7 +209,8 @@ def main():
     robot = RescueRobot()
 
     while True:
-        if robot.current_position is not None:
+        pos = robot.get_position()
+        if pos is not None:
             print(f"current position: {robot.current_position.transform.translation}")
         else:
             print("no position found")
