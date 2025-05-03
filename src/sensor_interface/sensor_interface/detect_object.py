@@ -79,8 +79,8 @@ class ArucoDetector(Node):
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
                     transform_msg.transform.translation.x = float(-tvec_rotated[2]) # Corrected X
-                    transform_msg.transform.translation.y = float(tvec_rotated[1] - 0.136) # There is an offset of Y
-                    transform_msg.transform.translation.z = float(0.09) # Keep constant but not 0.0
+                    transform_msg.transform.translation.y = float(tvec_rotated[1] - 0.136) # There is an offset of Y, how much of an offset? You would subtract something as it is offset in the postitive direction.
+                    transform_msg.transform.translation.z = float(0.09) #There is an offset of Z (6 cm)
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])
                     transform_msg.transform.rotation.z = float(quat[2])
