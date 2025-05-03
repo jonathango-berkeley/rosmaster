@@ -51,14 +51,11 @@ class RescueRobot:
         self.map_data = None
         self.map_received = False  # <- log-once flag
 
-        self.pos_sub = self.node.create_subscription(
-            TransformStamped,
-            '/current_position',
-            self.pos_callback,
-            10
-        )
-
         self.current_position = None
+        
+        # TF2 buffer and listener
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         # Publisher
         self.pose_publisher = self.node.create_publisher(
@@ -69,7 +66,6 @@ class RescueRobot:
 
         self.spin_thread = threading.Thread(target=rclpy.spin, args=(self.node,), daemon=True)
         self.spin_thread.start()
-
 
         # Setup Magnet
         self.PIN = 32
@@ -110,16 +106,17 @@ class RescueRobot:
             self.aruco_saved.append(child_frame_id)
         except KeyError:
             self.node.get_logger().error(f"Key {child_frame_id} not found")
-
-    def pos_callback(self, msg):
-        self.current_position = msg
     
-    def get_current_position(self):
-        if self.current_position is None:
-            self.node.get_logger().warn("Current position not yet received.")
-            return None
-        return self.current_position
+    def get_position(self):
+        try:
+            now = rclpy.time.Time()
+            # Lookup transform from 'map' to 'odom'
+            self.current_position = self.tf_buffer.lookup_transform('map', 'odom', now)
 
+            self.get_logger().info(f"Published map -> odom: {self.current_position.transform.translation}")
+
+        except Exception as e:
+            self.get_logger().warn(f"Could not lookup transform from map to odom: {e}")
 
     def filter_location(self, transforms):
         positions = []
@@ -183,99 +180,7 @@ class RescueRobot:
 
 
     def is_arrived(self):
-        position_threshold = 0.1
-        orientation_threshold = math.radians(5.0)
-        stable_position_threshold = 0.01
-        stable_orientation_threshold = math.radians(1.0)
-        # If the goal pose has not been received yet, return False
-        if self.goal_pose is None:
-            self.get_logger().warn("goal pose has not been received")
-            return False
-    
-        # Gets the current robot pose （first time）
-        current_tf_1 = self.get_position()
-        if current_tf_1 is None:
-            self.get_logger().warn("Failed to get current pose (1st time)")
-            return False
-        
-        # Wait 0.5 seconds to allow the robot or localization to stabilize
-        time.sleep(0.5)
-        
-        # Get the current robot pose (second time)
-        current_tf_2 = self.get_position()
-        if current_tf_2 is None:
-            self.get_logger().warn("Failed to get current pose (2nd time)")
-            return False
-        # Calculate how far the robot has moved between the first and second pose
-        dx_move = current_tf_2.transform.translation.x - current_tf_1.transform.translation.x
-        dy_move = current_tf_2.transform.translation.y - current_tf_1.transform.translation.y
-        distance_moved = math.sqrt(dx_move**2 + dy_move**2)
-        # If the movement in 0.5s exceeds the stable position threshold, the robot is still moving
-        if distance_moved > stable_position_threshold:
-            self.get_logger().info(
-                f"The robot moved {distance_moved:.3f}m in 0.5s, still moving => not arrived!"
-            )
-            return False
-        
-        q1 = [
-            current_tf_1.transform.rotation.x,
-            current_tf_1.transform.rotation.y,
-            current_tf_1.transform.rotation.z,
-            current_tf_1.transform.rotation.w
-        ]
-        q2 = [
-            current_tf_2.transform.rotation.x,
-            current_tf_2.transform.rotation.y,
-            current_tf_2.transform.rotation.z,
-            current_tf_2.transform.rotation.w
-        ]
-        r1 = R.from_quat(q1)
-        r2 = R.from_quat(q2)
-        # Compute the relative rotation by multiplying the inverse of r1 with r2
-        relative_rotation_r1_r2 = r1.inv() * r2
-        angle_diff_r1_r2 = relative_rotation_r1_r2.magnitude()  
-        # If the rotation in 0.5s exceeds the stable orientation threshold, the robot is still rotating
-        if angle_diff_r1_r2 > stable_orientation_threshold:
-            deg_12 = math.degrees(angle_diff_r1_r2)
-            self.get_logger().info(
-                f"The robot rotated {deg_12:.2f}° in 0.5 s, still rotating => not arrived!"
-            )
-            return False
-        # Calculate the distance from the second pose to the goal
-        dx_goal = current_tf_2.transform.translation.x - self.goal_pose.pose.position.x
-        dy_goal = current_tf_2.transform.translation.y - self.goal_pose.pose.position.y
-        distance_to_goal = math.sqrt(dx_goal**2 + dy_goal**2)
-        # If the distance to the goal is greater than the threshold, it's not arrived yet
-        if distance_to_goal > position_threshold:
-            self.get_logger().info(
-                f"Distance to goal: {distance_to_goal:.3f} m, not arrived yet!"
-            )
-            return False
-
-
-        q_goal = [
-            self.goal_pose.pose.orientation.x,
-            self.goal_pose.pose.orientation.y,
-            self.goal_pose.pose.orientation.z,
-            self.goal_pose.pose.orientation.w
-        ]
-        r_goal = R.from_quat(q_goal)
-        # Compute the relative rotation by multiplying the inverse of r2 with goal
-        relative_rotation_r2_goal = r2.inv() * r_goal
-        angle_diff_r2_goal = relative_rotation_r2_goal.magnitude()
-        # If the orientation difference to the goal is above the threshold, it's not arrived yet
-        if angle_diff_r2_goal > orientation_threshold:
-            deg_2g = math.degrees(angle_diff_r2_goal)
-            self.get_logger().info(
-                f"Orientation difference to goal: {deg_2g:.2f}°, not arrived yet!"
-            )
-            return False
-
-        # If all checks pass, log success and return True
-        self.get_logger().info("Arrived at target position and orientation.")
-        return True
-        
-       
+        pass   
 
     def search_and_rescue(self):
         pass
