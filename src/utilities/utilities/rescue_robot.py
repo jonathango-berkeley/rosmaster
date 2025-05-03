@@ -113,12 +113,12 @@ class RescueRobot:
             # Lookup transform from 'map' to 'odom'
             self.current_position = self.tf_buffer.lookup_transform('map', 'odom', now)
 
-            self.get_logger().info(f"Published map -> odom: {self.current_position.transform.translation}")
+            self.node.get_logger().info(f"Published map -> odom: {self.current_position.transform.translation}")
 
             return self.current_position
 
         except Exception as e:
-            self.get_logger().warn(f"Could not lookup transform from map to odom: {e}")
+            self.node.get_logger().warn(f"Could not lookup transform from map to odom: {e}")
 
             return None
 
@@ -181,7 +181,6 @@ class RescueRobot:
         else:
             GPIO.output(self.PIN, GPIO.LOW)
             self.get_logger().info("Set Magnet to OFF")
-
 
     def is_arrived(self):
         pass   
