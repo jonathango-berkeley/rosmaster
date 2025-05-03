@@ -40,9 +40,20 @@ class ArucoDetector(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+<<<<<<< HEAD
         
         self.T_opencv_to_ros = R.from_quat([0.5, -0.5, -0.5, 0.5])
         
+=======
+
+        # Define rotation from OpenCV to ROS camera frame
+        self.T_opencv_to_ros = R.from_matrix([
+            [0,  0, 1],
+            [-1, 0, 0],
+            [0, -1, 0]
+        ])
+
+>>>>>>> 7a31b1a (Update detect_object.py)
     def listener_callback(self, msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -63,6 +74,7 @@ class ArucoDetector(Node):
                     rvec = rvecs[i]
                     tvec = tvecs[i]
 
+<<<<<<< HEAD
                     # Convert rotation to matrix and adjust from OpenCV to ROS camera frame
                     rmat, _ = cv2.Rodrigues(rvec)
                     r_opencv = R.from_matrix(rmat)
@@ -82,11 +94,24 @@ class ArucoDetector(Node):
                     
                     tvec_ros = self.T_opencv_to_ros.apply(tvec[0])
 >>>>>>> 77c9716 (try to fix axes)
+=======
+                    # Orientation conversion
+                    rmat, _ = cv2.Rodrigues(rvec)
+                    r_opencv = R.from_matrix(rmat)
+                    r_ros = self.T_opencv_to_ros * r_opencv
+                    quat = r_ros.as_quat()
+
+                    # Translation (convert OpenCV to ROS camera frame)
+                    x_ros = float(tvec[0][2])
+                    y_ros = float(-tvec[0][0])
+                    z_ros = float(-tvec[0][1])
+>>>>>>> 7a31b1a (Update detect_object.py)
 
                     transform_msg = TransformStamped()
                     transform_msg.header.stamp = self.get_clock().now().to_msg()
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
+<<<<<<< HEAD
 <<<<<<< HEAD
                     transform_msg.transform.translation.x = float(-tvec_rotated[2]) # Corrected X
                     transform_msg.transform.translation.y = float(tvec_rotated[1] - 0.136) # There is an offset of Y, how much of an offset? You would subtract something as it is offset in the postitive direction.
@@ -96,6 +121,11 @@ class ArucoDetector(Node):
                     transform_msg.transform.translation.y = float(tvec_ros[1])
                     transform_msg.transform.translation.z = float(tvec_ros[2])
 >>>>>>> 77c9716 (try to fix axes)
+=======
+                    transform_msg.transform.translation.x = x_ros
+                    transform_msg.transform.translation.y = y_ros
+                    transform_msg.transform.translation.z = z_ros
+>>>>>>> 7a31b1a (Update detect_object.py)
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])
                     transform_msg.transform.rotation.z = float(quat[2])
@@ -103,7 +133,12 @@ class ArucoDetector(Node):
 
                     self.transform_pub.publish(transform_msg)
                     self.tf_broadcaster.sendTransform(transform_msg)
+<<<<<<< HEAD
                     self.get_logger().info(f"Published camera_link → aruco_marker_{ids[i][0]}")
+=======
+
+                    self.get_logger().info(f"Published TF: camera_link → aruco_marker_{ids[i][0]}")
+>>>>>>> 7a31b1a (Update detect_object.py)
 
         except Exception as e:
             self.get_logger().error(f"Error processing image: {e}")
