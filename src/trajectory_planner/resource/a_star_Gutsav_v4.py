@@ -6,7 +6,7 @@ from nav_msgs.msg import OccupancyGrid
 #########################################################
 
 #global parameter
-buffer = 3    #size of buffer zone
+buffer = 2    #size of buffer zone
 
 #########################################################
 
