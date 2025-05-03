@@ -55,7 +55,7 @@ class RescueRobot:
         
         # TF2 buffer and listener
         self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.tf_listener = TransformListener(self.tf_buffer, self.node)
 
         # Publisher
         self.pose_publisher = self.node.create_publisher(
