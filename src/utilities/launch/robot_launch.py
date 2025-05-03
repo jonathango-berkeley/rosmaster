@@ -168,7 +168,7 @@ def generate_launch_description():
     # Combine everything into a single launch description
     return LaunchDescription([
         sensor_launch,
-        trajectory_launch,
+        # trajectory_launch,
 
         cartographer_ms200_scan_node,
 
