@@ -20,7 +20,7 @@ class TwistPublisher(Node):
         self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
 
         # Create timer to publish at 10 Hz
-        self.timer = self.create_timer(0.1, self.publish_twist)
+        self.timer = self.create_timer(1.0, self.publish_twist)
 
     def publish_twist(self):
         msg = Twist()
@@ -37,7 +37,7 @@ class TwistPublisher(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = TwistPublisher()
-    rclpy.spin(node)
+    rclpy.spin_once(node)
     node.destroy_node()
     rclpy.shutdown()
 
