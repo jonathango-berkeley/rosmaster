@@ -180,6 +180,9 @@ class RescueRobot:
         return filtered_msg
     
     def run_robot(self, pose):
+        if isinstance(pose, TransformStamped):
+            pose = self._trans_to_pose(pose)
+
         x1 = pose.pose.position.x
         y1 = pose.pose.position.y
         x2 = self.current_position.pose.position.x
@@ -204,6 +207,15 @@ class RescueRobot:
 
         while self._spin(pose):
             self.node.get_logger().info("Spinning...")
+    
+    def trans_to_pose(transform: TransformStamped) -> PoseStamped:
+        pose = PoseStamped()
+        pose.header = transform.header  # copy frame_id and timestamp
+        pose.pose.position.x = transform.transform.translation.x
+        pose.pose.position.y = transform.transform.translation.y
+        pose.pose.position.z = transform.transform.translation.z
+        pose.pose.orientation = transform.transform.rotation
+        return pose
 
     def _forward(self,target_position):
         position = Point()
