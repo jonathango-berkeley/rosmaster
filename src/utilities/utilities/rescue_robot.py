@@ -222,8 +222,8 @@ class RescueRobot:
         position.y = self.get_position().transform.translation.y
 
         target = Point()
-        target.x = target_position.transform.translation.x
-        target.y = target_position.transform.translation.y
+        target.x = target_position.pose.position.x
+        target.y = target_position.pose.position.y
 
         move_cmd = Twist()
         distance = math.sqrt(pow((self.position.x - target.x), 2) + pow((self.position.y - target.y), 2))
