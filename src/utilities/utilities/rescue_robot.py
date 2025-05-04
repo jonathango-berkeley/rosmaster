@@ -91,7 +91,7 @@ class RescueRobot:
         self.RotationTolerance = math.radians(5)
 
         self.Linear = 0.05
-        self.Angular = 0.1
+        self.Angular = 0.05
 
         self.proportional_forward = 1 # Tweak P-controller
         self.proportional_spin = 1 # Tweak P-controller
@@ -226,7 +226,7 @@ class RescueRobot:
         target.y = target_position.pose.position.y
 
         move_cmd = Twist()
-        distance = math.sqrt((position.x - target.x)**2 + (position.y - target.y)**2)
+        distance = math.hypot(target.x - position.x), (target.y - position.y)
         move_cmd.linear.x = min(self.Linear, distance*self.proportional_forward)
         if abs(distance) < self.LineTolerance: 
             self.vel_publisher.publish(Twist())
@@ -241,7 +241,7 @@ class RescueRobot:
         current_angle = self._get_yaw(self.current_position)
         error = target_angle - current_angle
         move_cmd = Twist()
-        move_cmd.angular.z = math.copysign(min(self.Angular, error*self.proportional_spin), error)
+        move_cmd.angular.z = math.copysign(self.Angular, error)
         if abs(error) < self.RotationTolerance:
             self.vel_publisher.publish(Twist())
             return False
