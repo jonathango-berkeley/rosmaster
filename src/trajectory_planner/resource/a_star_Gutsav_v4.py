@@ -6,7 +6,7 @@ from nav_msgs.msg import OccupancyGrid
 #########################################################
 
 #global parameter
-buffer = 2    #size of buffer zone
+buffer = 4    #size of buffer zone
 
 #########################################################
 
@@ -138,12 +138,12 @@ def add_buffer(grid, buffer, start, end):
         for j in range(columns):
             print(f'Adding buffer zone: {(count / (len(grid) * len(grid[0])))*100:.2f} %', end = '\r')
             count = count + 1
-            if grid[i][j].type > 51:    #if it's an obstacle
+            if grid[i][j].type > 70:    #if it's an obstacle
                 for di in range(-buffer, buffer + 1):
                     for dj in range(-buffer, buffer + 1):
                         ni, nj = i + di, j + dj
                         if ni >= 0 and nj >= 0 and nj < columns and ni < rows:    #check if the neighbor is in bounds and within the buffer distance
-                            if grid[ni][nj] != start and grid[ni][nj] != end and grid[ni][nj].type != 100:    #avoid overwriting start, end, or 100
+                            if grid[ni][nj] != start and grid[ni][nj] != end and grid[ni][nj].type < 70:    #avoid overwriting start, end, or 100
                                     grid[ni][nj].type = 51    #set psudo obstacle
                                     
     return grid
