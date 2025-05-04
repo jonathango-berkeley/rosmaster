@@ -90,7 +90,7 @@ class RescueRobot:
         self.LineTolerance = 0.05
         self.RotationTolerance = math.radians(5)
 
-        self.Linear = 0.2
+        self.Linear = 0.05
         self.Angular = 0.1
 
         self.proportional_forward = 1 # Tweak P-controller
