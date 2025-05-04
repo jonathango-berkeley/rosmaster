@@ -284,6 +284,7 @@ class RescueRobot:
 
     def shutdown(self):
         GPIO.cleanup()
+        self.vel_publisher.publish(Twist())
         self.node.get_logger().info("Cleaning up resources.")
         self.node.destroy_node()
         rclpy.shutdown()
@@ -292,22 +293,34 @@ def main():
     signal.signal(signal.SIGINT, clean_exit)
     robot = RescueRobot()
 
+    pose = PoseStamped()
+    pose.header.frame_id = "map"
+    pose.header.stamp.sec = 0  # Set to 0 if you're just creating a static example
+    pose.header.stamp.nanosec = 0
+
+    pose.pose.position.x = 1.0
+    pose.pose.position.y = 1.0
+    pose.pose.position.z = 0.0
+
+    # South = -π/2 radians yaw
+    yaw = -math.pi / 2
+    pose.pose.orientation = Quaternion(
+        x=0.0,
+        y=0.0,
+        z=math.sin(yaw / 2),
+        w=math.cos(yaw / 2)
+    )
+
     while True:
-        if robot.aruco_queue:
-            for key in robot.aruco_queue:
-                robot.run_robot(robot.aruco_queue[key]['location'])
-                break
+        input(f"GO?")
 
-            input("wait")
+        robot.run_robot(pose)
 
-            robot.run_robot(robot.origin)
-            
-            input('wait(2)')
+        input("wait")
 
-            return
-
-        print("aruco not found")
-        time.sleep(1)
+        robot.run_robot(robot.origin)
+        
+        input('wait(2)')
 
 if __name__ == '__main__':
     main()
