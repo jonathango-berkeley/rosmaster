@@ -33,8 +33,8 @@ class ArucoDetector(Node):
         self.parameters = aruco.DetectorParameters()
         self.marker_length = 0.032  # meters
 
-        self.camera_matrix = np.array([[526, 0, 320],
-                                       [0, 526, 240],
+        self.camera_matrix = np.array([[2640.2, 0, 1640],
+                                       [0, 2640.2, 1232],
                                        [0, 0, 1]], dtype=np.float64)
         self.dist_coeffs = np.zeros((5, 1), dtype=np.float64)
 
