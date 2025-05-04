@@ -208,21 +208,14 @@ def main():
     robot = RescueRobot()
 
     while True:
-        pos = robot.get_position()
-        if pos is not None:
-            print(f"current position: {robot.current_position.transform.translation}")
-        else:
-            print("no position found")
+        if robot.aruco_queue:
+            for aruco in robot.aruco_queue:
+                robot.run_robot(robot.aruco['location'])
+                break
+        
+        input("press enter!")
 
-        try:
-            print("----- aruco queue ------")
-            for key in robot.aruco_queue:
-                loc = robot.aruco_queue[key]["location"]
-                print(f"{key} location: {loc.transform.translation}")
-        except Exception as e:
-            print(f"error: {e}")
-
-        time.sleep(1)
+        break
 
 if __name__ == '__main__':
     main()
