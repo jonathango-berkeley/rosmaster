@@ -7,7 +7,6 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 from tf2_ros import TransformListener, Buffer, LookupException, ConnectivityException, ExtrapolationException
-from tf_transformations import quaternion_from_euler
 
 from geometry_msgs.msg import TransformStamped, PoseStamped, Twist, Point, Quaternion
 from nav_msgs.msg import OccupancyGrid
@@ -189,7 +188,7 @@ class RescueRobot:
         y2 = self.current_position.pose.position.y
         angle = math.atan2(y2 - y1, x2 - x1)
 
-        q = quaternion_from_euler(0, 0, angle)
+        q = self._euler_to_quaternion(0, 0, angle)
 
         direction_pose = PoseStamped()
         direction_pose.header.frame_id = "map"
@@ -208,7 +207,7 @@ class RescueRobot:
         while self._spin(pose):
             self.node.get_logger().info("Spinning...")
     
-    def trans_to_pose(transform: TransformStamped) -> PoseStamped:
+    def _trans_to_pose(transform: TransformStamped) -> PoseStamped:
         pose = PoseStamped()
         pose.header = transform.header  # copy frame_id and timestamp
         pose.pose.position.x = transform.transform.translation.x
@@ -256,6 +255,12 @@ class RescueRobot:
         angle_rot = cacl_rot.GetRPY()[2]
     
         return angle_rot
+    
+
+    def _euler_to_quaternion(roll, pitch, yaw):
+        r = R.from_euler('xyz', [roll, pitch, yaw])
+        q = r.as_quat()  # returns [x, y, z, w]
+        return q
 
     def switch_magnet(self, state):
         if state:
