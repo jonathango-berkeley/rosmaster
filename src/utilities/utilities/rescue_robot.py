@@ -184,8 +184,8 @@ class RescueRobot:
 
         x1 = pose.pose.position.x
         y1 = pose.pose.position.y
-        x2 = self._trans_to_pose(self.current_position).pose.position.x
-        y2 = self._trans_to_pose(self.current_position).pose.position.y
+        x2 = self.current_position.transform.translation.x
+        y2 = self.current_position.transform.translation.y
         angle = math.atan2(y2 - y1, x2 - x1)
 
         q = self._euler_to_quaternion(0, 0, angle)
