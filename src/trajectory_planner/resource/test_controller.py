@@ -56,9 +56,6 @@ class GoalFollower(Node):
         goal_theta = math.atan2(dy, dx)
         angle_diff = self.normalize_angle(goal_theta - yaw)
 
-        angle_diff_z = math.sin(goal_theta / 2.0) - self.current_position.transform.rotation.z
-        angle_diff_w = math.cos(goal_theta / 2.0) - self.current_position.transform.rotation.w
-
         twist = Twist()
 
         if self.state == 'rotate':
@@ -74,7 +71,7 @@ class GoalFollower(Node):
         elif self.state == 'forward':
             if distance > self.position_tolerance:
                 twist.linear.x = self.linear_speed
-                self.get_logger().info("Outside tolerance.")
+                self.get_logger().info(f"Outside tolerance. distance: {distance}")
             else:
                 twist = Twist()
                 self.get_logger().info("Stopped!")
@@ -88,7 +85,7 @@ class GoalFollower(Node):
 
             if abs(final_diff) > self.angle_tolerance:
                 twist.angular.z = self.angular_speed if final_diff > 0 else -self.angular_speed
-                self.get_logger().info("Outside tolerance.")
+                self.get_logger().info(f"Outside tolerance. final_diff: {final_diff}")
             else:
                 twist = Twist()
                 self.get_logger().info("Stopped!")
