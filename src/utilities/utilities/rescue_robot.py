@@ -87,7 +87,7 @@ class RescueRobot:
                 self.node.get_logger().warning("waiting for origin")
 
         # Robot Controls Part
-        self.LineTolerance = 0.05
+        self.LineTolerance = 0.1
         self.RotationTolerance = math.radians(5)
 
         self.Linear = 0.05
@@ -232,6 +232,7 @@ class RescueRobot:
             self.vel_publisher.publish(Twist())
             return False
         else:
+            self.node.get_logger().info(f"distance: {distance}")
             self.vel_publisher.publish(move_cmd)
         return True
 
