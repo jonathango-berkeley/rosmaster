@@ -226,7 +226,7 @@ class RescueRobot:
         target.y = target_position.pose.position.y
 
         move_cmd = Twist()
-        distance = math.hypot(target.x - position.x), (target.y - position.y)
+        distance = math.hypot(target.x - position.x, target.y - position.y)
         move_cmd.linear.x = self.Linear
         if distance < self.LineTolerance: 
             self.vel_publisher.publish(Twist())
