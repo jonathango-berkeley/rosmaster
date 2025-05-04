@@ -22,7 +22,7 @@ class GoalFollower(Node):
         self.linear_speed = 0.1
         self.angular_speed = 0.1
         self.position_tolerance = 0.1
-        self.angle_tolerance = 0.2
+        self.angle_tolerance = 0.1
 
         self.get_logger().info("Controller active.")
 
@@ -33,7 +33,7 @@ class GoalFollower(Node):
 
     def pose_callback(self, msg):
         self.current_position = msg
-        self.get_logger().info("Received current_position.")  # Optional debug
+        #self.get_logger().info("Received current_position.")  # Optional debug
 
     def control_loop(self):
         if self.current_position is None or self.goal_pose is None:
@@ -56,12 +56,15 @@ class GoalFollower(Node):
         goal_theta = math.atan2(dy, dx)
         angle_diff = self.normalize_angle(goal_theta - yaw)
 
+        angle_diff_z = math.sin(goal_theta / 2.0) - self.current_position.transform.rotation.z
+        angle_diff_w = math.cos(goal_theta / 2.0) - self.current_position.transform.rotation.w
+
         twist = Twist()
 
         if self.state == 'rotate':
             if abs(angle_diff) > self.angle_tolerance:
                 twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
-                self.get_logger().info("Outside tolerance.")
+                self.get_logger().info(f"Outside tolerance. angle_diff: {angle_diff}")
             else:
                 twist = Twist()
                 self.get_logger().info("Stopped!")
@@ -101,8 +104,10 @@ class GoalFollower(Node):
     def normalize_angle(self, angle):
         while angle > math.pi:
             angle -= 2 * math.pi
+            print("normalized")
         while angle < -math.pi:
             angle += 2 * math.pi
+            print("normalized")
         return angle
 
     def yaw_from_quaternion(self, q):

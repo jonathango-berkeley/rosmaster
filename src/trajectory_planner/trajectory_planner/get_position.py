@@ -27,7 +27,7 @@ class MapToOdomPublisher(Node):
         try:
             now = rclpy.time.Time()
             # Lookup transform from 'map' to 'odom'
-            transform = self.tf_buffer.lookup_transform('map', 'odom', now)
+            transform = self.tf_buffer.lookup_transform('map', 'base_footprint', now)
 
             self.publisher.publish(transform)
             self.get_logger().info(f"Published map -> odom: {transform.transform.translation}")
