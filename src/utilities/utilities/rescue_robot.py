@@ -93,8 +93,8 @@ class RescueRobot:
         self.Linear = 0.2
         self.Angular = 0.5
 
-        self.proportional_forward = 0.01 # Tweak P-controller
-        self.proportional_spin = 0.01 # Tweak P-controller
+        self.proportional_forward = 1 # Tweak P-controller
+        self.proportional_spin = 1 # Tweak P-controller
 
         # Setup Magnet
         self.PIN = 32
@@ -251,8 +251,8 @@ class RescueRobot:
     def _get_yaw(self, position):
         if isinstance(position, TransformStamped):
             position = self._trans_to_pose(position)
-        cacl_rot = PyKDL.Rotation.Quaternion(position.transform.rotation.x, position.transform.rotation.y,
-                                                position.transform.rotation.z, position.transform.rotation.w
+        cacl_rot = PyKDL.Rotation.Quaternion(position.pose.orientation.x, position.pose.orientation.y,
+                                                position.pose.orientation.z, position.pose.orientation.w
                                                 )
         angle_rot = cacl_rot.GetRPY()[2]
     
