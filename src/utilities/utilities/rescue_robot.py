@@ -240,7 +240,7 @@ class RescueRobot:
         current_angle = self._get_yaw(self.current_position)
         error = target_angle - current_angle
         move_cmd = Twist()
-        move_cmd.angular.z = math.copysign(math.min(self.Angular, error*self.proportional_spin), error)
+        move_cmd.angular.z = math.copysign(min(self.Angular, error*self.proportional_spin), error)
         if abs(error) < self.RotationTolerance:
             self.vel_publisher.publish(Twist())
             return False
