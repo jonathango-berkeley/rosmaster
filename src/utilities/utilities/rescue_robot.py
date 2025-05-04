@@ -114,7 +114,7 @@ class RescueRobot:
         if msg.child_frame_id in self.aruco_saved:
             return
 
-        found_location = self.get_current_position()
+        found_location = self.get_position()
         if msg.child_frame_id in self.aruco_queue:
             self.aruco_queue[msg.child_frame_id]["found_location"] = found_location
             if len(self.aruco_queue[msg.child_frame_id]["last_10"]) > 10:
