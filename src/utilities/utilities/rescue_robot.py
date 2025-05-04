@@ -249,6 +249,8 @@ class RescueRobot:
         return True
     
     def _get_yaw(self, position):
+        if isinstance(position, TransformStamped):
+            position = self._trans_to_pose(position)
         cacl_rot = PyKDL.Rotation.Quaternion(position.transform.rotation.x, position.transform.rotation.y,
                                                 position.transform.rotation.z, position.transform.rotation.w
                                                 )
