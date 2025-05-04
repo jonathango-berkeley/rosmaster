@@ -87,7 +87,7 @@ class RescueRobot:
                 self.node.get_logger().warning("waiting for origin")
 
         # Robot Controls Part
-        self.LineTolerance = 0.1
+        self.LineTolerance = 0.3
         self.RotationTolerance = math.radians(5)
 
         self.Linear = 0.05
