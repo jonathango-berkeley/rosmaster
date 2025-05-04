@@ -33,23 +33,14 @@ class ArucoDetector(Node):
         self.parameters = aruco.DetectorParameters()
         self.marker_length = 0.032  # meters
 
-        self.camera_matrix = np.array([[526, 0, 320],
-                                       [0, 526, 240],
+        self.camera_matrix = np.array([[2640.2, 0, 1640],
+                                       [0, 2640.2, 1232],
                                        [0, 0, 1]], dtype=np.float64)
         self.dist_coeffs = np.zeros((5, 1), dtype=np.float64)
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-<<<<<<< HEAD
-        
-        self.T_opencv_to_ros = R.from_quat([0.5, -0.5, -0.5, 0.5])
-        
-=======
 
-        # Correct rotation from OpenCV to ROS REP-103
-        self.T_opencv_to_ros = R.from_quat([0.5, -0.5, -0.5, 0.5])
-
->>>>>>> 7a31b1a (Update detect_object.py)
     def listener_callback(self, msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -70,11 +61,9 @@ class ArucoDetector(Node):
                     rvec = rvecs[i]
                     tvec = tvecs[i]
 
-<<<<<<< HEAD
                     # Convert rotation to matrix and adjust from OpenCV to ROS camera frame
                     rmat, _ = cv2.Rodrigues(rvec)
                     r_opencv = R.from_matrix(rmat)
-<<<<<<< HEAD
                     T_opencv_to_ros_base = R.from_quat([0.5, -0.5, 0.5, -0.5])
                     R_flip_xz = R.from_euler('xyz', [-90,90,0], degrees=True)
 
@@ -84,30 +73,14 @@ class ArucoDetector(Node):
                     quat = r_ros.as_quat()
 
                     tvec_rotated = T_opencv_to_ros.apply(tvec[0])
-=======
-                    r_ros = T_opencv_to_ros * r_opencv
-                    quat = r_ros.as_quat()
-                    
-                    tvec_ros = self.T_opencv_to_ros.apply(tvec[0])
->>>>>>> 77c9716 (try to fix axes)
-=======
-                    # Convert OpenCV rotation to quaternion in ROS frame
-                    rmat, _ = cv2.Rodrigues(rvec)
-                    r_opencv = R.from_matrix(rmat)
-                    r_ros = self.T_opencv_to_ros * r_opencv
-                    quat = r_ros.as_quat()
 
-                    # Rotate translation vector to ROS camera frame
-                    tvec_ros = self.T_opencv_to_ros.apply(tvec[0])
-
-                    # Create TransformStamped message
                     transform_msg = TransformStamped()
                     transform_msg.header.stamp = self.get_clock().now().to_msg()
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
-                    transform_msg.transform.translation.x = x_ros
-                    transform_msg.transform.translation.y = y_ros
-                    transform_msg.transform.translation.z = z_ros
+                    transform_msg.transform.translation.x = float(-tvec_rotated[2]) # Corrected X
+                    transform_msg.transform.translation.y = float(tvec_rotated[1] - 0.136) # There is an offset of Y
+                    transform_msg.transform.translation.z = float(0.09) # Keep constant but not 0.0
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])
                     transform_msg.transform.rotation.z = float(quat[2])
@@ -115,11 +88,8 @@ class ArucoDetector(Node):
 
                     self.transform_pub.publish(transform_msg)
                     self.tf_broadcaster.sendTransform(transform_msg)
-<<<<<<< HEAD
-                    self.get_logger().info(f"Published camera_link → aruco_marker_{ids[i][0]}")
-=======
 
-                    self.get_logger().info(f"Published TF: camera_link → aruco_marker_{ids[i][0]}")
+                    self.get_logger().info(f"Published camera_link → aruco_marker_{ids[i][0]}")
 
         except Exception as e:
             self.get_logger().error(f"Error processing image: {e}")
@@ -138,3 +108,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
