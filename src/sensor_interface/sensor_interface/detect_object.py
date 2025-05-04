@@ -33,8 +33,8 @@ class ArucoDetector(Node):
         self.parameters = aruco.DetectorParameters()
         self.marker_length = 0.032  # meters
 
-        self.camera_matrix = np.array([[526, 0, 320],
-                                       [0, 526, 240],
+        self.camera_matrix = np.array([[2640.2, 0, 1640],
+                                       [0, 2640.2, 1232],
                                        [0, 0, 1]], dtype=np.float64)
         self.dist_coeffs = np.zeros((5, 1), dtype=np.float64)
 
@@ -61,17 +61,26 @@ class ArucoDetector(Node):
                     rvec = rvecs[i]
                     tvec = tvecs[i]
 
+                    # Convert rotation to matrix and adjust from OpenCV to ROS camera frame
                     rmat, _ = cv2.Rodrigues(rvec)
-                    quat = R.from_matrix(rmat).as_quat()
+                    r_opencv = R.from_matrix(rmat)
+                    T_opencv_to_ros_base = R.from_quat([0.5, -0.5, 0.5, -0.5])
+                    R_flip_xz = R.from_euler('xyz', [-90,90,0], degrees=True)
 
-                    # Step 1: Publish camera_link → aruco_marker_<id>
+                    T_opencv_to_ros = R_flip_xz * T_opencv_to_ros_base
+
+                    r_ros = T_opencv_to_ros * r_opencv
+                    quat = r_ros.as_quat()
+
+                    tvec_rotated = T_opencv_to_ros.apply(tvec[0])
+
                     transform_msg = TransformStamped()
                     transform_msg.header.stamp = self.get_clock().now().to_msg()
                     transform_msg.header.frame_id = "camera_link"
                     transform_msg.child_frame_id = f"aruco_marker_{ids[i][0]}"
-                    transform_msg.transform.translation.x = float(tvec[0][2])
-                    transform_msg.transform.translation.y = float(-tvec[0][1]-0.3)
-                    transform_msg.transform.translation.z = float(0.0)
+                    transform_msg.transform.translation.x = float(-tvec_rotated[2]) # Corrected X
+                    transform_msg.transform.translation.y = float(tvec_rotated[1] - 0.136) # There is an offset of Y, how much of an offset? You would subtract something as it is offset in the postitive direction.
+                    transform_msg.transform.translation.z = float(0.09) #There is an offset of Z (6 cm)
                     transform_msg.transform.rotation.x = float(quat[0])
                     transform_msg.transform.rotation.y = float(quat[1])
                     transform_msg.transform.rotation.z = float(quat[2])
@@ -99,4 +108,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-    
