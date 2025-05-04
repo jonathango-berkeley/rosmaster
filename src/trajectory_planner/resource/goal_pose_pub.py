@@ -22,7 +22,7 @@ class GoalPublisher(Node):
 
         # Goal position (1 meter in front of origin)
         goal.pose.position.x = 0.0
-        goal.pose.position.y = -1.0
+        goal.pose.position.y = -0.5
         goal.pose.position.z = 0.0
 
         # Goal orientation (facing straight ahead)
