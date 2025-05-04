@@ -8,12 +8,16 @@ from builtin_interfaces.msg import Time
 class GoalPublisher(Node):
     def __init__(self):
         super().__init__('goal_publisher')
+
+        self.AR_position = None
+
         self.publisher_ = self.create_publisher(PoseStamped, '/goal_pose', 10)
+        self.pose_sub = self.create_subscription(TransformStamped, '/ARtag_transform', self.pose_callback, 10)
         self.timer = self.create_timer(1.0, self.publish_goal)
         self.goal_sent = False
 
     def publish_goal(self):
-        if self.goal_sent:
+        if self.goal_sent == True or self.AR_position == None:
             return  # Only send once
 
         goal = PoseStamped()
@@ -21,8 +25,8 @@ class GoalPublisher(Node):
         goal.header.stamp = self.get_clock().now().to_msg()
 
         # Goal position (1 meter in front of origin)
-        goal.pose.position.x = 0.0
-        goal.pose.position.y = -0.5
+        goal.pose.position.x = self.AR_position.transform.translation.x
+        goal.pose.position.y = self.AR_position.transform.translation.y
         goal.pose.position.z = 0.0
 
         # Goal orientation (facing straight ahead)
@@ -35,10 +39,13 @@ class GoalPublisher(Node):
         self.get_logger().info("Published goal pose.")
         self.goal_sent = True  # only publish once
 
+    def pose_callback(self, msg):
+        self.AR_position = msg
+
 def main(args=None):
     rclpy.init(args=args)
     node = GoalPublisher()
-    rclpy.spin(node)
+    rclpy.spin_once(node)
     node.destroy_node()
     rclpy.shutdown()
 
