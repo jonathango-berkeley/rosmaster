@@ -59,7 +59,7 @@ class GoalFollower(Node):
 
     def pose_callback(self, msg):
         self.current_position = msg
-        #self.get_logger().info("Received current_position.")  # Optional debug
+        self.get_logger().info("Received current_position.")  # Optional debug
 
     def control_loop(self):
 

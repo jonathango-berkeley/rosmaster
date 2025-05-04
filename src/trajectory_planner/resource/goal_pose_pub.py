@@ -2,7 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped
 from builtin_interfaces.msg import Time
 
 class GoalPublisher(Node):
@@ -45,7 +45,7 @@ class GoalPublisher(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = GoalPublisher()
-    rclpy.spin_once(node)
+    rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
 
