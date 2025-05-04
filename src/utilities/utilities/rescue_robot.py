@@ -207,7 +207,7 @@ class RescueRobot:
         while self._spin(pose):
             self.node.get_logger().info("Spinning...")
     
-    def _trans_to_pose(transform: TransformStamped) -> PoseStamped:
+    def _trans_to_pose(self, transform: TransformStamped) -> PoseStamped:
         pose = PoseStamped()
         pose.header = transform.header  # copy frame_id and timestamp
         pose.pose.position.x = transform.transform.translation.x
@@ -235,7 +235,7 @@ class RescueRobot:
             self.vel_publisher.publish(move_cmd)
         return True
 
-    def _spin(self,target_position):
+    def _spin(self, target_position):
         target_angle = self._get_yaw(target_position)
         current_angle = self._get_yaw(self.current_position)
         error = target_angle - current_angle
@@ -257,7 +257,7 @@ class RescueRobot:
         return angle_rot
     
 
-    def _euler_to_quaternion(roll, pitch, yaw):
+    def _euler_to_quaternion(self, roll, pitch, yaw):
         r = R.from_euler('xyz', [roll, pitch, yaw])
         q = r.as_quat()  # returns [x, y, z, w]
         return q
