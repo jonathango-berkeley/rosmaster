@@ -306,6 +306,7 @@ def main():
 
             return
 
+        print("aruco not found")
         time.sleep(1)
 
 if __name__ == '__main__':
