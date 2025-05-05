@@ -9,7 +9,7 @@ import tf2_ros
 import time
 
 
-class MapToOdomPublisher(Node):
+class MapToARPublisher(Node):
     def __init__(self):
         super().__init__('get_ARtag')
 
@@ -27,7 +27,7 @@ class MapToOdomPublisher(Node):
         try:
             now = rclpy.time.Time()
             # Lookup transform from 'map' to 'odom'
-            transform = self.tf_buffer.lookup_transform('map', 'aruco_marker_66', now)
+            transform = self.tf_buffer.lookup_transform('map', 'aruco_marker_64', now)
 
             self.publisher.publish(transform)
             # self.get_logger().info(f"Published map -> odom: {transform.transform.translation}")
@@ -38,7 +38,7 @@ class MapToOdomPublisher(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MapToOdomPublisher()
+    node = MapToARPublisher()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

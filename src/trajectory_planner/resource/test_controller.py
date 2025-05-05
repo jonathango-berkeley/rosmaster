@@ -170,7 +170,7 @@ class GoalFollower(Node):
             point.pose.position.x = (trajectory[i].y * res)+orix
             point.pose.position.y = (trajectory[i].x * res)+oriy
 
-            if (i+1) > (len(trajectory) - 1):
+            if i == (len(trajectory) - 1):
                 dx = self.goal_pose.pose.position.x - point.pose.position.x
                 dy = self.goal_pose.pose.position.y - point.pose.position.y
             else:
