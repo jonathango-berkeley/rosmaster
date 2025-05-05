@@ -271,7 +271,7 @@ def plot(occupancy_grid_msg, start, end):
             
     for i in range(rows1):
         for j in range(columns1):
-            if grid[i][j].type == 100:
+            if grid[i][j].type > 70:
                 oc1_x.append(grid[i][j].x)
                 oc1_y.append(grid[i][j].y)
             elif grid[i][j].type == 51:

@@ -24,12 +24,12 @@ class ExploreHard(Node):
         
         self.waypoints = [
             [0.0, 0.0],
-            [1.3, 0.0],
-            [1.3, -1.3],
-            [0.0, -1.3],
-            [0.7, -0.7]
+            [1.0, 0.0],
+            [1.0, -1.0],
+            [0.0, -1.0],
+            [0.5, -0.5]
         ]
-        self.num_interm_wayp = 2    #total number of intermediate waypoints (needs tuning)
+        self.num_interm_wayp = 1    #total number of intermediate waypoints (needs tuning)
         self.prev_waypoint = 0    #previous waypoint list position
         self.waypoint_coords = None    #coordinates of the waypoint we currently want to move to
         self.goal_waypoint = 1    #goal waypoint list position
@@ -77,7 +77,7 @@ class ExploreHard(Node):
             prev_y = int((self.waypoints[self.prev_waypoint][1]-oriy)/res)
             
             #plan path
-            #a_star.plot(self.map_data, [prev_x, prev_y], [goal_x, goal_y])
+            a_star.plot(self.map_data, [prev_x, prev_y], [goal_x, goal_y])
             trajectory = a_star.a_star(self.map_data, [prev_x, prev_y], [goal_x, goal_y])
 
             if trajectory == None:
@@ -85,13 +85,13 @@ class ExploreHard(Node):
                 return
                 
             #extract intermediate waypoints
-            k, m = divmod(len(trajectory), self.num_interm_wayp + 1)
-            parts = [trajectory[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(self.num_interm_wayp + 1)]    #dividing the list of waypoints
-            waypoints_map = [parts[i][-1] for i in range(self.num_interm_wayp)]    #extracting intermediate waypoints
+            #k, m = divmod(len(trajectory), self.num_interm_wayp + 1)
+            #parts = [trajectory[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(self.num_interm_wayp + 1)]    #dividing the list of waypoints
+            #waypoints_map = [parts[i][-1] for i in range(self.num_interm_wayp)]    #extracting intermediate waypoints
                 
             #extracting cell coordinates and transform back to real world coordinates
-            for i in range(self.num_interm_wayp):
-                self.interm_wayp.append([(waypoints_map[i].y * res)+orix, (waypoints_map[i].x * res)+oriy])
+            for i in range(len(trajectory)):
+                self.interm_wayp.append([(trajectory[i].y * res)+orix, (trajectory[i].x * res)+oriy])
                 
             self.interm_wayp.append(self.waypoints[self.goal_waypoint])
 
