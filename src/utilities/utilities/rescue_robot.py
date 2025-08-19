@@ -284,7 +284,58 @@ class RescueRobot:
        
 
     def search_and_rescue(self):
-        pass
+        original_pose = self.original_pose
+    
+        # Loop through dynamic checkpoints using next_explore_waypoint
+        while True:
+            checkpoint = self.next_explore_waypoint()
+            if checkpoint is None:
+                break
+    
+            self.node.get_logger().info("Moving to next exploration waypoint")
+            self.run_robot(checkpoint)
+    
+            while not self.is_arrived():
+                rclpy.spin_once(self.node, timeout_sec=0.5)
+    
+            self.node.get_logger().info("Arrived at waypoint, checking for objects...")
+    
+            for marker_id, data in list(self.aruco_queue.items()):
+    
+                found_location = data["found_location"]
+                target_location = data["location"]
+    
+                self.run_robot(found_location)
+                while not self.is_arrived():
+                    rclpy.spin_once(self.node, timeout_sec=0.5)
+    
+                self.switch_magnet(True)
+    
+                self.run_robot(target_location)
+                while not self.is_arrived():
+                    rclpy.spin_once(self.node, timeout_sec=0.5)
+    
+                self.node.get_logger().info("Waiting 3 seconds to grab object")
+                rclpy.sleep(3.0)
+    
+                self.run_robot(found_location)
+                while not self.is_arrived():
+                    rclpy.spin_once(self.node, timeout_sec=0.5)
+    
+                # Return to original point to deactivate magnet
+                self.run_robot(original_pose)
+                while not self.is_arrived():
+                    rclpy.spin_once(self.node, timeout_sec=0.5)
+    
+                self.switch_magnet(False)
+                self.remove_object(marker_id)
+    
+            rclpy.spin_once(self.node, timeout_sec=1.0)
+    
+        self.node.get_logger().info("Rescue mission completed.")
+        self.node.get_logger().info("Rescue mission completed.")
+
+    
 
     def spin(self):
         self.node.get_logger().info("Robot is running...")
